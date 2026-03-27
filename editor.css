@@ -1,0 +1,138 @@
+
+body
+{
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #222;
+    color: #fff;
+}
+.toolbar 
+{
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #333;
+    border-radius: 5px;
+    display: flex;
+    gap: 10px;
+    align-items: center; 
+}
+
+button 
+{
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+/* Contêiner para sobrepor os canvas */
+.canvas-container 
+{
+    position: relative;
+    /* Tamanho visual do editor */
+    width: 320px;
+    height: 320px;
+    outline: 2px solid #555;
+    background: #eee; /* Fundo claro para contrastar o desenho */
+}
+
+canvas
+{
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* Tamanho real do desenho (32x32 mapeado para 320x320) */
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated; /* Essencial para pixel art */
+}
+
+#onionCanvas {
+    opacity: 0.4; /* Transparência do frame anterior */
+    pointer-events: none; /* Garante que os cliques passem para o canvas de pintura */
+    z-index: 1;
+}
+
+#paintCanvas {
+    background: transparent;
+    z-index: 2;
+    cursor: crosshair;
+}
+/* Estilo para indicar a ferramenta selecionada */
+.active-tool {
+    background-color: #007bff;
+    color: white;
+    border: 1px solid #0056b3;
+}
+.tool-group {
+    display: flex;
+    gap: 2px;
+    margin-right: 10px;
+}
+
+
+.preview-panel {
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    background: #333;
+    padding: 10px;
+    border: 2px solid #555;
+    border-radius: 8px;
+    text-align: center;
+}
+#previewCanvas {
+    width: 128px; /* Miniatura ampliada para visibilidade */
+    height: 128px;
+    background: #eee;
+    image-rendering: pixelated;
+    border: 1px solid #000;
+    margin-bottom: 5px;
+}
+
+.preview-controls
+{
+    font-size: 12px;
+}
+
+.palette-panel {
+    position: fixed;
+    right: 20px;
+    top: 250px; /* Abaixo do Preview */
+    background: #333;
+    padding: 10px;
+    border: 2px solid #555;
+    border-radius: 8px;
+    width: 140px;
+}
+.palette-row {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 5px;
+}
+.color-swatch {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #000;
+    cursor: pointer;
+}
+.color-swatch:hover 
+{
+    border-color: #fff;
+}
+
+.palette-actions 
+{
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+h4 
+{
+    margin: 0 0 8px 0;
+    font-size: 12px;
+    text-align: center;
+    color: #aaa;
+}
