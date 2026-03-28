@@ -1,4 +1,6 @@
-const CANVAS_SIZE = 32; // Resolução nativa (32x32)
+// Mude de const para let
+var CANVAS_SIZE = 32; 
+const selectSize = document.getElementById('selectSize');
 
 // Ferramentas
 const btnPencil = document.getElementById('btnPencil');
@@ -13,6 +15,20 @@ const btnBucket = document.getElementById('btnBucket');
 var selection = { active: false, x: 0, y: 0, w: 0, h: 0, data: null, isMoving: false };
 var clipboard = null;
 const btnSelect = document.getElementById('btnSelect');
+
+//zoom and panning
+var scale = 10.0;
+var panX = 0;
+var panY = 0;
+var isPanning = false;
+var startPanX, startPanY;
+const btn_ZoomIn = document.getElementById('btnZoomIn');
+const btn_ZoomOut=document.getElementById('btnZoomOut');
+const btnPan = document.getElementById('btnPan'); 
+
+const viewPort = document.getElementById("viewport");
+const container = document.getElementById('canvasContainer');
+const zoomDisplay = document.getElementById('zoomDisplay');
 
 // Canvas Principal
 const paintCanvas = document.getElementById('paintCanvas');
@@ -37,8 +53,6 @@ const btnDelete = document.getElementById('btnDeleteFrame');
 //Manipulação de arquivos
 const btnExport = document.getElementById('btnExport');
 const btnExportGif = document.getElementById('btnExportGif');
-
-
 
 const btnClear = document.getElementById('btnClearFrame');
 
@@ -258,12 +272,10 @@ function exportGif()
 }
 
 function drawGrid() {
-    gridCtx.clearRect(0, 0, CANVAS_SIZE*10, CANVAS_SIZE*10);
+    gridCtx.clearRect(0, 0, CANVAS_SIZE*scale, CANVAS_SIZE*scale);
     
-    if (!chkGrid.checked)
-    {
-        return;
-    }
+    if(scale < 5) return;
+    if (!chkGrid.checked) return;
 
     gridCtx.strokeStyle = "rgba(0, 0, 0, 1)"; // Cor da linha
     gridCtx.lineWidth = 0.3; // Linha bem fina para a escala 32x32
@@ -271,21 +283,23 @@ function drawGrid() {
     gridCtx.beginPath();
     for (let i = 0; i <= CANVAS_SIZE; i++) {
         // Linhas Verticais
-        gridCtx.moveTo(i*10, 0);
-        gridCtx.lineTo(i*10, CANVAS_SIZE*10);
+        gridCtx.moveTo(i*scale, 0);
+        gridCtx.lineTo(i*scale, CANVAS_SIZE*scale);
         // Linhas Horizontais
-        gridCtx.moveTo(0, i*10);
-        gridCtx.lineTo(CANVAS_SIZE*10, i*10);
+        gridCtx.moveTo(0, i*scale);
+        gridCtx.lineTo(CANVAS_SIZE*scale, i*scale);
     }
     gridCtx.stroke();
 
     // Desenha o retângulo de seleção se estiver ativo
-    if (selection.active) {
-        gridCtx.strokeStyle = "#ff0000"; // Vermelho para destacar
-        gridCtx.lineWidth = 0.5;
-        gridCtx.setLineDash([2, 2]); // Linha tracejada
-        gridCtx.strokeRect(selection.x*10, selection.y*10, selection.w*10, selection.h*10);
-        gridCtx.setLineDash([]); // Reset dash
+    if(currentTool == "select"){
+        if (selection.active) {
+            gridCtx.strokeStyle = "#ff0000"; // Vermelho para destacar
+            gridCtx.lineWidth = 0.5;
+            gridCtx.setLineDash([2, 2]); // Linha tracejada
+            gridCtx.strokeRect(selection.x*scale, selection.y*scale, selection.w*scale, selection.h*scale);
+            gridCtx.setLineDash([]); // Reset dash
+        }
     }
 }
 
@@ -302,13 +316,27 @@ function updateUI(){
 function setTool(tool) {
     currentTool = tool;
     // Remove classe ativa de todos
-    [btnPencil, btnEraser, btnBucket, btnLine].forEach(b => b?.classList.remove('active-tool'));
+    btnPencil.classList.remove('active-tool');
+    btnEraser.classList.remove('active-tool');
+    btnBucket.classList.remove('active-tool');
+    btnLine.classList.remove('active-tool');
+    btnSelect.classList.remove('active-tool');
+    btnPan.classList.remove('active-tool');
     
     // Adiciona ao selecionado
     if(tool === 'pencil') btnPencil.classList.add('active-tool');
     if(tool === 'eraser') btnEraser.classList.add('active-tool');
     if(tool === 'bucket') btnBucket.classList.add('active-tool');
     if(tool === 'line') btnLine.classList.add('active-tool');
+    if(tool === 'pan') btnPan.classList.add('active-tool');
+
+    if(tool === 'select') btnSelect.classList.add('active-tool');
+    else {
+        selection.active = false;
+        selection.data = null;
+        selection.isMoving = false;
+        drawGrid();
+    }
 }
 
 function updatePreview(){
@@ -374,7 +402,39 @@ function updatePreview(){
     }
 
     // --- Ações de Navegação e Edição ---
+function updateCanvasResolution(newSize) {
+    if (!confirm("Alterar o tamanho irá limpar o seu progresso atual. Continuar?")) {
+        selectSize.value = CANVAS_SIZE; // Reverte o dropdown
+        return;
+    }
 
+    CANVAS_SIZE = parseInt(newSize);
+
+    // Lista de todos os canvas que precisam mudar a resolução interna
+    paintCanvas.width = CANVAS_SIZE;
+    paintCanvas.height = CANVAS_SIZE;
+
+    onionCanvas.width = CANVAS_SIZE;
+    onionCanvas.height = CANVAS_SIZE;
+
+    previewCanvas.width = CANVAS_SIZE;
+    previewCanvas.height = CANVAS_SIZE;
+
+    gridCanvas.width = CANVAS_SIZE * scale;
+    gridCanvas.height =CANVAS_SIZE * scale;
+    
+
+    // Reinicia o projeto
+    frames = [];
+    currentFrameIndex = 0;
+    
+    // Cria um novo frame em branco no novo tamanho
+    paintCtx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+    saveCurrentFrame(); 
+    
+    loadFrame(0);
+    drawGrid();
+}
     function nextFrame(){
         if (currentFrameIndex < frames.length - 1) {
             saveCurrentFrame(); // Salva o estado do atual
@@ -534,13 +594,50 @@ function clearFrame() {
         // (Isso acontece automaticamente ao navegar entre frames no seu sistema atual)
 }
 
+function updateView() {
+    // Aplica o zoom e o deslocamento via CSS
+    container.style.transform = `translate(${panX}px, ${panY}px)`;
+    gridCanvas.width = CANVAS_SIZE * scale;
+    gridCanvas.height =CANVAS_SIZE * scale;
+    container.style.width = CANVAS_SIZE * scale + "px";
+    container.style.height = CANVAS_SIZE * scale  + "px";
+    zoomDisplay.innerText = `${Math.round(scale * 100)}%`;
+    drawGrid();
+}
+
+function adjustZoom(delta) 
+{
+    const newScale = scale + delta;
+    if (newScale < 0.5) newScale = 0.5;
+    if (newScale > 10.0) newScale = 10;
+    
+    scale = newScale;
+    updateView();
+}
+
+function adjustViewPort()
+{
+    viewPort.style.width = window.innerWidth + "px";
+    viewPort.style.height = window.innerHeight + "px";
+    panX = 0;
+    panY = 0;
+    updateView();
+}
+
 function pageLoad() {
+
+    viewPort.style.width = (window.innerWidth -40) + "px";
+    viewPort.style.height = (window.innerHeight -100) + "px";
+    
+    window.onresize = ()=> adjustViewPort();
 
     // Configuração para Pixel Art em ambos os contextos
     paintCtx.imageSmoothingEnabled = false;
     onionCtx.imageSmoothingEnabled = false;
     // Configuração do Preview
     previewCtx.imageSmoothingEnabled = false;
+
+    selectSize.addEventListener('change', (e) => updateCanvasResolution(e.target.value));
 
     // --- Atalhos de Teclado (Opcional, mas muito útil) ---
     window.addEventListener('keydown', (e) => {
@@ -549,6 +646,11 @@ function pageLoad() {
         if (e.key.toLowerCase() === 'l') setTool('line');
         if (e.key.toLowerCase() === 'b') setTool('bucket');
         if (e.key.toLowerCase() === 's') setTool('select');
+
+        if (e.code === 'Space') {
+            setTool('pan');
+            document.getElementById('viewport').classList.add('pan-tool-active');
+        }
     
         // Copiar
         if (e.ctrlKey && e.key === 'c' && selection.active) {
@@ -571,6 +673,13 @@ function pageLoad() {
     btnBucket.onclick = () => setTool('bucket');
     btnLine.onclick = () => setTool('line');
     btnSelect.onclick=()=> setTool('select');
+    btn_ZoomIn.onclick = () => adjustZoom(0.5);
+    btn_ZoomOut.onclick = () => adjustZoom(-0.5);
+    
+    btnPan.onclick = () => setTool('pan');
+    //posição inicial do canvas quando a pagina carregar
+    panX = (window.innerWidth - (CANVAS_SIZE * scale))/2;
+    panY = 20;
 
     btnClear.addEventListener('click', clearFrame);
 
@@ -588,6 +697,13 @@ function pageLoad() {
         const pos = getMousePos(e);
         startX = pos.x;
         startY = pos.y;
+
+        if (currentTool === 'pan') {
+                isPanning = true;
+                startPanX = e.clientX - panX;
+                startPanY = e.clientY - panY;
+                return; // Não desenha se estiver movendo a tela
+        }
 
         if (currentTool === 'select') {
             if (isPointInSelection(x, y)) {
@@ -629,6 +745,9 @@ function pageLoad() {
         isDrawing = false;
         saveCurrentFrame();
     });
+    window.addEventListener('mouseup', () => {
+        isPanning = false;
+    });
 
     paintCanvas.addEventListener('mouseleave', () => {
         if(isDrawing) {
@@ -638,10 +757,13 @@ function pageLoad() {
     });
 
     paintCanvas.addEventListener('mousemove', draw);
-    // paintCanvas.addEventListener('mousedown', (e) => {
-    //     isDrawing = true;
-    //     draw(e); 
-    // });
+    window.addEventListener('mousemove', (e) => {
+        if (isPanning) {
+            panX = e.clientX - startPanX;
+            panY = e.clientY - startPanY;
+            updateView();
+        }
+    });
 
     // --- Listeners da UI ---
     btnPrev.addEventListener('click', prevFrame);
@@ -659,7 +781,7 @@ function pageLoad() {
 
     // Adiciona uma cor inicial (ex: cinza ou azul)
     btnAddPaletteRow.onclick = () => {createPaletteRow(paleteColorPicker.value);};
-    createPaletteRow('#808080');
+    createPaletteRow('#553d3d');
     // --- Lógica da Animação de Preview ---
 
     
@@ -671,6 +793,7 @@ function pageLoad() {
 
     // --- Inicialização ---
     updateUI();
+    updateView();
     updatePreview(); // Inicia o loop de animação
 }
 

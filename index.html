@@ -8,6 +8,18 @@
 <body>
 
     <div class="toolbar">
+        <div class="config-group">
+            <label for="selectSize">Tamanho:</label>
+            <select id="selectSize" title="Altere o tamanho da tela de pintura. ATENÇÃO: se você fizer isso durante a edição, o desenho será apagado.">
+                <option value="32">32x32</option>
+                <option value="48">48x48</option>
+                <option value="64">64x64</option>
+                <option value="96">96x96</option>
+                <option value="128">128x128</option>
+                <option value="256">256x256</option>
+                <option value="512">512x512</option>
+            </select>
+        </div>
         <div class="tool-group">
             <button id="btnPencil" class="active-tool" title="Lápis (P)"><img src="assets/pencil.png"></button>
             <button id="btnLine" title="Linha Reta (L)"><img src="assets/line.png"></button>
@@ -17,8 +29,15 @@
             <button id="btnClearFrame" title="Limpar Frame Atual"><img src="assets/clear.png"></button>
         </div>
 
-        <input type="color" id="colorPicker" value="#00FF00">
-        
+        <input type="color" id="colorPicker" value="#000000">
+
+        <div class="zoom-group">
+            <button id="btnZoomOut" title="Zoom Out">-</button>
+            <span id="zoomDisplay">1000%</span>
+            <button id="btnZoomIn" title="Zoom In">+</button>
+            <button id="btnPan" title="Mover Tela (H)"><img src="assets/drag.png"></button>
+        </div>
+
         <div class="nav-group">
             <button id="btnPrev" title="Frame anterior"><img src="assets/previous.png"></button>
             <span id="frameIndicator">Frame: 1 / 1</span>
@@ -41,10 +60,18 @@
         <button id="btnExportGif" title="Exportar GIF"><img src="assets/gif.png"></button>
     </div>
 
-    <div class="canvas-container">
+    <!-- <div class="canvas-container">
         <canvas id="onionCanvas" width="32" height="32"></canvas>
         <canvas id="paintCanvas" width="32" height="32"></canvas>
         <canvas id="gridCanvas" width="320" height="320"></canvas>
+    </div> -->
+
+    <div class="viewport" id="viewport">
+        <div class="canvas-container" id="canvasContainer">
+            <canvas id="onionCanvas" width="32" height="32"></canvas>
+            <canvas id="paintCanvas" width="32" height="32"></canvas>
+            <canvas id="gridCanvas" width="32" height="32"></canvas>
+        </div>
     </div>
 
     <div class="preview-panel">

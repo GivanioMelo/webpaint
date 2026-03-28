@@ -31,15 +31,29 @@ button > img
     height: 32px;
 }
 
-/* Contêiner para sobrepor os canvas */
-.canvas-container 
-{
+.viewport {
+    overflow: hidden; /* Esconde o que sai da borda ao dar zoom */
     position: relative;
-    /* Tamanho visual do editor */
-    width: 320px;
-    height: 320px;
-    outline: 2px solid #555;
-    background: #eee; /* Fundo claro para contrastar o desenho */
+    background: #444;
+    border: 2px solid #555;
+    cursor: default;
+}
+
+.canvas-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0; /* Zoom a partir do canto superior esquerdo para facilitar o cálculo */
+    transition: transform 0.1s ease-out; /* Suaviza o zoom */
+    background-color: #fff;
+}
+
+/* Cursor de "mão" para a ferramenta Pan */
+.pan-tool-active {
+    cursor: grab;
+}
+.pan-tool-active:active {
+    cursor: grabbing;
 }
 
 canvas
