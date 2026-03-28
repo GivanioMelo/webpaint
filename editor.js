@@ -24,6 +24,11 @@ const btnExport = document.getElementById('btnExport');
 const btnExportGif = document.getElementById('btnExportGif');
 
 const btnPencil = document.getElementById('btnPencil');
+
+var startX, startY;
+var snapshot; // Para guardar o estado do canvas antes de começar a linha
+const btnLine = document.getElementById('btnLine');
+
 const btnEraser = document.getElementById('btnEraser');
 const btnBucket = document.getElementById('btnBucket');
 const btnClear = document.getElementById('btnClearFrame');
@@ -59,7 +64,7 @@ function hexToRgb(hex)
         const g = parseInt(hex.slice(3, 5), 16);
         const b = parseInt(hex.slice(5, 7), 16);
         return { r, g, b, a: 255 };
-};
+}
 
 function hexToHsl(hex){
         let r = parseInt(hex.slice(1, 3), 16) / 255;
@@ -80,7 +85,7 @@ function hexToHsl(hex){
             h /= 6;
         }
         return { h: h * 360, s: s * 100, l: l * 100 };
-    };
+    }
 
 function hslToHex(h, s, l)
 {
@@ -92,7 +97,7 @@ function hslToHex(h, s, l)
         return Math.round(255 * color).toString(16).padStart(2, '0');
     };
     return `#${f(0)}${f(8)}${f(4)}`;
-};
+}
 
 function createPaletteRow(baseHex)
 {
@@ -123,7 +128,7 @@ function createPaletteRow(baseHex)
     });
 
     paletteRows.appendChild(row);
-};
+}
 
 function floodFill(startX, startY, fillColor)
 {
@@ -166,7 +171,7 @@ function floodFill(startX, startY, fillColor)
     }
     paintCtx.putImageData(imageData, 0, 0);
     saveCurrentFrame(); // Atualiza o array de frames e o preview
-};
+}
 
 function exportPNG()
 {
@@ -241,7 +246,7 @@ function exportGif()
         btnExportGif.innerText = "Exportar GIF";
         alert("GIF gerado com sucesso!");
     });
-};
+}
 
 function drawGrid() {
     gridCtx.clearRect(0, 0, CANVAS_SIZE*10, CANVAS_SIZE*10);
@@ -273,15 +278,20 @@ function updateUI(){
     // Habilitar/Desabilitar botões de navegação
     btnPrev.disabled = currentFrameIndex === 0;
     btnNext.disabled = currentFrameIndex === frames.length - 1;
-};
+}
 
 // --- Lógica de Troca de Ferramenta ---
-function setTool(tool){
+function setTool(tool) {
     currentTool = tool;
-    btnPencil.classList.toggle('active-tool', tool === 'pencil');
-    btnEraser.classList.toggle('active-tool', tool === 'eraser');
-    btnBucket.classList.toggle('active-tool', tool === 'bucket');
-};
+    // Remove classe ativa de todos
+    [btnPencil, btnEraser, btnBucket, btnLine].forEach(b => b?.classList.remove('active-tool'));
+    
+    // Adiciona ao selecionado
+    if(tool === 'pencil') btnPencil.classList.add('active-tool');
+    if(tool === 'eraser') btnEraser.classList.add('active-tool');
+    if(tool === 'bucket') btnBucket.classList.add('active-tool');
+    if(tool === 'line') btnLine.classList.add('active-tool');
+}
 
 function updatePreview(){
         if (frames.length === 0) return;
@@ -306,11 +316,11 @@ function updatePreview(){
         // pegamos a versão mais atual direto do canvas se necessário,
         // mas usar o array 'frames' costuma ser mais performático.
         img.src = frames[previewFrameIndex];
-    };
+    }
 
  function saveCurrentFrame(){
         frames[currentFrameIndex] = paintCanvas.toDataURL();
-    };
+    }
 
     function drawOnionSkin(){
         onionCtx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
@@ -327,7 +337,7 @@ function updatePreview(){
             onionCtx.drawImage(img, 0, 0);
         };
         img.src = prevFrameData;
-    };
+    }
 
     function loadFrame(index){
         currentFrameIndex = index;
@@ -343,7 +353,7 @@ function updatePreview(){
             updateUI();
         };
         img.src = frames[index];
-    };
+    }
 
     // --- Ações de Navegação e Edição ---
 
@@ -352,14 +362,14 @@ function updatePreview(){
             saveCurrentFrame(); // Salva o estado do atual
             loadFrame(currentFrameIndex + 1);
         }
-    };
+    }
 
     function prevFrame(){
         if (currentFrameIndex > 0) {
             saveCurrentFrame(); // Salva o estado do atual
             loadFrame(currentFrameIndex - 1);
         }
-    };
+    }
 
     function addNewFrame(){
         saveCurrentFrame();
@@ -369,7 +379,7 @@ function updatePreview(){
         frames.push(paintCanvas.toDataURL());
         // Vai para o novo frame
         loadFrame(frames.length - 1);
-    };
+    }
 
 function duplicateFrame() {
     // 1. Guarda o estado atual do canvas no array
@@ -414,21 +424,21 @@ function deleteFrame() {
 
     // --- Lógica de Desenho ---
 
-    function draw(e){
+    function draw(e) {
         if (!isDrawing) return;
-        const pos = getMousePos(e);
+        const { x, y } = getMousePos(e);
 
         if (currentTool === 'pencil') {
-            // Modo Normal: Desenha a cor selecionada
-            paintCtx.globalCompositeOperation = 'source-over';
             paintCtx.fillStyle = colorPicker.value;
-            paintCtx.fillRect(pos.x, pos.y, 1, 1);
+            paintCtx.fillRect(x, y, 1, 1);
         } else if (currentTool === 'eraser') {
-            // Modo Borracha: "Corta" o pixel deixando-o transparente
-            paintCtx.globalCompositeOperation = 'destination-out';
-            paintCtx.fillRect(pos.x, pos.y, 1, 1);
+            paintCtx.clearRect(x, y, 1, 1);
+        } else if (currentTool === 'line') {
+            // Restaura o canvas antes de desenhar a nova linha de preview
+            paintCtx.putImageData(snapshot, 0, 0);
+            drawPixelLine(startX, startY, x, y, colorPicker.value, false);
         }
-    };
+    }
 
     function getMousePos(e){
         const rect = paintCanvas.getBoundingClientRect();
@@ -437,12 +447,35 @@ function deleteFrame() {
             x: Math.floor((e.clientX - rect.left) * (CANVAS_SIZE / rect.width)),
             y: Math.floor((e.clientY - rect.top) * (CANVAS_SIZE / rect.height))
         };
-    };
+    }
 
     function restartPreview(){
         clearTimeout(previewTimeout);
         updatePreview();
-    };
+    }
+
+function drawPixelLine(x0, y0, x1, y1, color, isEraser = false) {
+    let dx = Math.abs(x1 - x0);
+    let dy = Math.abs(y1 - y0);
+    let sx = (x0 < x1) ? 1 : -1;
+    let sy = (y0 < y1) ? 1 : -1;
+    let err = dx - dy;
+
+    paintCtx.fillStyle = color;
+
+    while (true) {
+        if (isEraser) {
+            paintCtx.clearRect(x0, y0, 1, 1);
+        } else {
+            paintCtx.fillRect(x0, y0, 1, 1);
+        }
+
+        if (x0 === x1 && y0 === y1) break;
+        let e2 = 2 * err;
+        if (e2 > -dy) { err -= dy; x0 += sx; }
+        if (e2 < dx) { err += dx; y0 += sy; }
+    }
+}
 
 function clearFrame() {
         // Limpa o contexto de desenho
@@ -465,13 +498,15 @@ function pageLoad() {
     window.addEventListener('keydown', (e) => {
         if (e.key.toLowerCase() === 'p') setTool('pencil');
         if (e.key.toLowerCase() === 'e') setTool('eraser');
+        if (e.key.toLowerCase() === 'l') setTool('line');
         if (e.key.toLowerCase() === 'b') setTool('bucket');
     });
 
     // --- Listeners ---
-    btnPencil.addEventListener('click', () => setTool('pencil'));
-    btnEraser.addEventListener('click', () => setTool('eraser'));
-    btnBucket.addEventListener('click', () => setTool('bucket'));
+    btnPencil.onclick = () => setTool('pencil');
+    btnEraser.onclick = () => setTool('eraser');
+    btnBucket.onclick = () => setTool('bucket');
+    btnLine.onclick = () => setTool('line');
 
     btnClear.addEventListener('click', clearFrame);
 
@@ -484,13 +519,18 @@ function pageLoad() {
    
 
     paintCanvas.addEventListener('mousedown', (e) => {
+        isDrawing = true;
         const pos = getMousePos(e);
-        
+        startX = pos.x;
+        startY = pos.y;
+
         if (currentTool === 'bucket') {
-            const color = hexToRgb(colorPicker.value);
-            floodFill(pos.x, pos.y, color);
+            floodFill(startX, startY, hexToRgb(colorPicker.value));
+        } else if (currentTool === 'line') {
+            // Guarda o estado atual para o "preview"
+            snapshot = paintCtx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+            draw(e);
         } else {
-            isDrawing = true;
             draw(e);
         }
     });
