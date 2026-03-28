@@ -1,5 +1,19 @@
 const CANVAS_SIZE = 32; // Resolução nativa (32x32)
 
+// Ferramentas
+const btnPencil = document.getElementById('btnPencil');
+
+var startX, startY;
+var snapshot; // Para guardar o estado do canvas antes de começar a linha
+const btnLine = document.getElementById('btnLine');
+
+const btnEraser = document.getElementById('btnEraser');
+const btnBucket = document.getElementById('btnBucket');
+
+var selection = { active: false, x: 0, y: 0, w: 0, h: 0, data: null, isMoving: false };
+var clipboard = null;
+const btnSelect = document.getElementById('btnSelect');
+
 // Canvas Principal
 const paintCanvas = document.getElementById('paintCanvas');
 const paintCtx = paintCanvas.getContext('2d');
@@ -13,24 +27,19 @@ const colorPicker = document.getElementById('colorPicker');
 const frameIndicator = document.getElementById('frameIndicator');
 const chkOnion = document.getElementById('chkOnion');
 
-// Controles
+// Timeline
 const btnPrev = document.getElementById('btnPrev');
 const btnNext = document.getElementById('btnNext');
 const btnAdd = document.getElementById('btnAddFrame');
 const btnDuplicate = document.getElementById('btnDuplicateFrame');
 const btnDelete = document.getElementById('btnDeleteFrame');
 
+//Manipulação de arquivos
 const btnExport = document.getElementById('btnExport');
 const btnExportGif = document.getElementById('btnExportGif');
 
-const btnPencil = document.getElementById('btnPencil');
 
-var startX, startY;
-var snapshot; // Para guardar o estado do canvas antes de começar a linha
-const btnLine = document.getElementById('btnLine');
 
-const btnEraser = document.getElementById('btnEraser');
-const btnBucket = document.getElementById('btnBucket');
 const btnClear = document.getElementById('btnClearFrame');
 
 const previewCanvas = document.getElementById('previewCanvas');
@@ -269,6 +278,15 @@ function drawGrid() {
         gridCtx.lineTo(CANVAS_SIZE*10, i*10);
     }
     gridCtx.stroke();
+
+    // Desenha o retângulo de seleção se estiver ativo
+    if (selection.active) {
+        gridCtx.strokeStyle = "#ff0000"; // Vermelho para destacar
+        gridCtx.lineWidth = 0.5;
+        gridCtx.setLineDash([2, 2]); // Linha tracejada
+        gridCtx.strokeRect(selection.x*10, selection.y*10, selection.w*10, selection.h*10);
+        gridCtx.setLineDash([]); // Reset dash
+    }
 }
 
 // --- Funções de Núcleo ---
@@ -427,7 +445,22 @@ function deleteFrame() {
     function draw(e) {
         if (!isDrawing) return;
         const { x, y } = getMousePos(e);
-
+        if (currentTool === 'select') {
+            if (selection.isMoving) {
+                // Move a caixa de seleção
+                const dx = x - startX;
+                const dy = y - startY;
+                selection.x += dx;
+                selection.y += dy;
+                startX = x;
+                startY = y;
+            } else {
+                // Cria a caixa de seleção
+                const rect = getSelectionPath(startX, startY, x, y);
+                selection = { ...selection, ...rect, active: true };
+            }
+            drawGrid(); // Redesenha a grade para mostrar o retângulo de seleção
+        }
         if (currentTool === 'pencil') {
             paintCtx.fillStyle = colorPicker.value;
             paintCtx.fillRect(x, y, 1, 1);
@@ -477,6 +510,21 @@ function drawPixelLine(x0, y0, x1, y1, color, isEraser = false) {
     }
 }
 
+function getSelectionPath(x1, y1, x2, y2) {
+    return {
+        x: Math.min(x1, x2),
+        y: Math.min(y1, y2),
+        w: Math.abs(x2 - x1) + 1,
+        h: Math.abs(y2 - y1) + 1
+    };
+}
+
+function isPointInSelection(x, y) {
+    return selection.active && 
+           x >= selection.x && x < selection.x + selection.w &&
+           y >= selection.y && y < selection.y + selection.h;
+}
+
 function clearFrame() {
         // Limpa o contexto de desenho
         paintCtx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
@@ -500,6 +548,21 @@ function pageLoad() {
         if (e.key.toLowerCase() === 'e') setTool('eraser');
         if (e.key.toLowerCase() === 'l') setTool('line');
         if (e.key.toLowerCase() === 'b') setTool('bucket');
+        if (e.key.toLowerCase() === 's') setTool('select');
+    
+        // Copiar
+        if (e.ctrlKey && e.key === 'c' && selection.active) {
+            clipboard = paintCtx.getImageData(selection.x, selection.y, selection.w, selection.h);
+            console.log("Copiado!");
+        }
+
+        // Colar
+        if (e.ctrlKey && e.key === 'v' && clipboard) {
+            // Cola no topo esquerdo ou na posição atual do mouse
+            paintCtx.putImageData(clipboard, selection.x, selection.y);
+            saveCurrentFrame();
+            console.log("Colado!");
+        }
     });
 
     // --- Listeners ---
@@ -507,6 +570,7 @@ function pageLoad() {
     btnEraser.onclick = () => setTool('eraser');
     btnBucket.onclick = () => setTool('bucket');
     btnLine.onclick = () => setTool('line');
+    btnSelect.onclick=()=> setTool('select');
 
     btnClear.addEventListener('click', clearFrame);
 
@@ -520,26 +584,50 @@ function pageLoad() {
 
     paintCanvas.addEventListener('mousedown', (e) => {
         isDrawing = true;
+        const { x, y } = getMousePos(e);
         const pos = getMousePos(e);
         startX = pos.x;
         startY = pos.y;
 
-        if (currentTool === 'bucket') {
+        if (currentTool === 'select') {
+            if (isPointInSelection(x, y)) {
+                // Inicia movimento do que está selecionado
+                selection.isMoving = true;
+                if (!selection.data) {
+                    selection.data = paintCtx.getImageData(selection.x, selection.y, selection.w, selection.h);
+                    paintCtx.clearRect(selection.x, selection.y, selection.w, selection.h);
+                }
+            } else {
+                // Inicia nova seleção
+                selection.active = false;
+                selection.data = null;
+                selection.isMoving = false;
+            }
+        }
+        else if (currentTool === 'bucket') {
             floodFill(startX, startY, hexToRgb(colorPicker.value));
-        } else if (currentTool === 'line') {
+        }
+        else if (currentTool === 'line') {
             // Guarda o estado atual para o "preview"
             snapshot = paintCtx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
             draw(e);
-        } else {
+        }
+        else {
             draw(e);
         }
     });
 
     paintCanvas.addEventListener('mouseup', () => {
-        if(isDrawing) {
-            isDrawing = false;
-            saveCurrentFrame(); // Auto-salva ao soltar o mouse
+        if (isDrawing && currentTool === 'select' && selection.isMoving) {
+            // "Cola" os pixels na nova posição ao soltar
+            if (selection.data) {
+                paintCtx.putImageData(selection.data, selection.x, selection.y);
+                selection.data = null;
+                selection.isMoving = false;
+            }
         }
+        isDrawing = false;
+        saveCurrentFrame();
     });
 
     paintCanvas.addEventListener('mouseleave', () => {
