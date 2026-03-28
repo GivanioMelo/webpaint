@@ -25,6 +25,12 @@ button
     padding: 5px 10px;
 }
 
+button > img
+{
+    width: 32px;
+    height: 32px;
+}
+
 /* Contêiner para sobrepor os canvas */
 .canvas-container 
 {
@@ -136,3 +142,22 @@ h4
     text-align: center;
     color: #aaa;
 }
+
+#gridCanvas {
+    pointer-events: none; /* Crucial para desenhar "através" da grade */
+    z-index: 3;           /* Acima do paintCanvas (z-index 2) */
+    opacity: 0.5;         /* Deixa a grade sutil */
+}
+
+/* No ficheiro editor.css */
+#btnClearFrame {
+    background-color: #ff4444;
+    color: white;
+    border: 1px solid #cc0000;
+    border-radius: 4px;
+}
+
+#btnClearFrame:hover {
+    background-color: #cc0000;
+}
+

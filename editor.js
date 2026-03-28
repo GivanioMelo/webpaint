@@ -23,6 +23,7 @@ const btnExportGif = document.getElementById('btnExportGif');
 const btnPencil = document.getElementById('btnPencil');
 const btnEraser = document.getElementById('btnEraser');
 const btnBucket = document.getElementById('btnBucket');
+const btnClear = document.getElementById('btnClearFrame');
 
 const previewCanvas = document.getElementById('previewCanvas');
 const previewCtx = previewCanvas.getContext('2d');
@@ -31,6 +32,23 @@ const fpsInput = document.getElementById('fpsInput');
 const paletteRows = document.getElementById('paletteRows');
 const mainColorPicker = document.getElementById('mainColorPicker');
 const btnAddPaletteRow = document.getElementById('btnAddPaletteRow');
+
+const gridCanvas = document.getElementById('gridCanvas');
+const gridCtx = gridCanvas.getContext('2d');
+const chkGrid = document.getElementById('chkGrid');
+
+
+
+ // 'pencil' ou 'eraser'
+var currentTool = 'pencil';
+// --- Estado da Aplicação ---
+// Começamos com um frame vazio (totalmente transparente)
+var frames = [paintCanvas.toDataURL()]; 
+var currentFrameIndex = 0;
+var isDrawing = false;
+
+var previewFrameIndex = 0;
+var previewTimeout = null;
 
 function hexToRgb(hex)
 {
@@ -61,47 +79,48 @@ function hexToHsl(hex){
         return { h: h * 360, s: s * 100, l: l * 100 };
     };
 
-function hslToHex(h, s, l){
-        l /= 100;
-        const a = s * Math.min(l, 1 - l) / 100;
-        const f = n => {
-            const k = (n + h / 30) % 12;
-            const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-            return Math.round(255 * color).toString(16).padStart(2, '0');
+function hslToHex(h, s, l)
+{
+    l /= 100;
+    const a = s * Math.min(l, 1 - l) / 100;
+    const f = n => {
+        const k = (n + h / 30) % 12;
+        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+};
+
+function createPaletteRow(baseHex)
+{
+    const hsl = hexToHsl(baseHex);
+    const row = document.createElement('div');
+    row.className = 'palette-row';
+
+    // Tons: -30%, -20%, -10%, BASE, +10%, +20%, +30%
+    const offsets = [-30, -20, -10, 0, 10, 20, 30];
+
+    offsets.forEach(offset => {
+        const newL = Math.max(0, Math.min(100, hsl.l + offset));
+        const hex = hslToHex(hsl.h, hsl.s, newL);
+        
+        const swatch = document.createElement('div');
+        swatch.className = 'color-swatch';
+        swatch.style.backgroundColor = hex;
+        swatch.title = hex;
+        
+        // Ao clicar, define como a cor principal do editor
+        swatch.onclick = () => {
+            colorPicker.value = hex;
+            // Se estiver no modo borracha, volta para o lápis ao escolher cor
+            if(currentTool === 'eraser') setTool('pencil');
         };
-        return `#${f(0)}${f(8)}${f(4)}`;
-    };
+        
+        row.appendChild(swatch);
+    });
 
-    function createPaletteRow(baseHex)
-    {
-        const hsl = hexToHsl(baseHex);
-        const row = document.createElement('div');
-        row.className = 'palette-row';
-
-        // Tons: -30%, -20%, -10%, BASE, +10%, +20%, +30%
-        const offsets = [-30, -20, -10, 0, 10, 20, 30];
-
-        offsets.forEach(offset => {
-            const newL = Math.max(0, Math.min(100, hsl.l + offset));
-            const hex = hslToHex(hsl.h, hsl.s, newL);
-            
-            const swatch = document.createElement('div');
-            swatch.className = 'color-swatch';
-            swatch.style.backgroundColor = hex;
-            swatch.title = hex;
-            
-            // Ao clicar, define como a cor principal do editor
-            swatch.onclick = () => {
-                colorPicker.value = hex;
-                // Se estiver no modo borracha, volta para o lápis ao escolher cor
-                if(currentTool === 'eraser') setTool('pencil');
-            };
-            
-            row.appendChild(swatch);
-        });
-
-        paletteRows.appendChild(row);
-    };
+    paletteRows.appendChild(row);
+};
 
 function floodFill(startX, startY, fillColor)
 {
@@ -221,62 +240,76 @@ function exportGif()
     });
 };
 
-function pageLoad() {
-
-    let currentTool = 'pencil'; // 'pencil' ou 'eraser'
-
-    // --- Estado da Aplicação ---
-    // Começamos com um frame vazio (totalmente transparente)
-    let frames = [paintCanvas.toDataURL()]; 
-    let currentFrameIndex = 0;
-    let isDrawing = false;
-
-    // Configuração para Pixel Art em ambos os contextos
-    paintCtx.imageSmoothingEnabled = false;
-    onionCtx.imageSmoothingEnabled = false;
-
-    let previewFrameIndex = 0;
-    let previewTimeout = null;
-
-    // Configuração do Preview
-    previewCtx.imageSmoothingEnabled = false;
-
-    // --- Funções de Núcleo ---
+function drawGrid() {
+    gridCtx.clearRect(0, 0, CANVAS_SIZE*10, CANVAS_SIZE*10);
     
-    const updateUI = () => {
-        frameIndicator.innerText = `Frame: ${currentFrameIndex + 1} / ${frames.length}`;
+    if (!chkGrid.checked)
+    {
+        return;
+    }
+
+    gridCtx.strokeStyle = "rgba(0, 0, 0, 1)"; // Cor da linha
+    gridCtx.lineWidth = 0.3; // Linha bem fina para a escala 32x32
+
+    gridCtx.beginPath();
+    for (let i = 0; i <= CANVAS_SIZE; i++) {
+        // Linhas Verticais
+        gridCtx.moveTo(i*10, 0);
+        gridCtx.lineTo(i*10, CANVAS_SIZE*10);
+        // Linhas Horizontais
+        gridCtx.moveTo(0, i*10);
+        gridCtx.lineTo(CANVAS_SIZE*10, i*10);
+    }
+    gridCtx.stroke();
+}
+
+// --- Funções de Núcleo ---
+function updateUI(){
+    frameIndicator.innerText = `Frame: ${currentFrameIndex + 1} / ${frames.length}`;
+    
+    // Habilitar/Desabilitar botões de navegação
+    btnPrev.disabled = currentFrameIndex === 0;
+    btnNext.disabled = currentFrameIndex === frames.length - 1;
+};
+
+// --- Lógica de Troca de Ferramenta ---
+function setTool(tool){
+    currentTool = tool;
+    btnPencil.classList.toggle('active-tool', tool === 'pencil');
+    btnEraser.classList.toggle('active-tool', tool === 'eraser');
+    btnBucket.classList.toggle('active-tool', tool === 'bucket');
+};
+
+function updatePreview(){
+        if (frames.length === 0) return;
+
+        // Limpa e desenha o frame atual da animação
+        const img = new Image();
+        img.onload = () => {
+            previewCtx.clearRect(0, 0, 32, 32);
+            previewCtx.drawImage(img, 0, 0);
+            
+            // Avança para o próximo frame circularmente
+            previewFrameIndex = (previewFrameIndex + 1) % frames.length;
+            
+            // Calcula o tempo baseado no FPS (1000ms / FPS)
+            const delay = 1000 / parseInt(fpsInput.value || 8);
+            
+            // Agenda o próximo frame
+            previewTimeout = setTimeout(updatePreview, delay);
+        };
         
-        // Habilitar/Desabilitar botões de navegação
-        btnPrev.disabled = currentFrameIndex === 0;
-        btnNext.disabled = currentFrameIndex === frames.length - 1;
+        // Se estivermos editando o frame que o preview quer mostrar, 
+        // pegamos a versão mais atual direto do canvas se necessário,
+        // mas usar o array 'frames' costuma ser mais performático.
+        img.src = frames[previewFrameIndex];
     };
 
-    // --- Lógica de Troca de Ferramenta ---
-
-    const setTool = (tool) => {
-        currentTool = tool;
-        btnPencil.classList.toggle('active-tool', tool === 'pencil');
-        btnEraser.classList.toggle('active-tool', tool === 'eraser');
-        btnBucket.classList.toggle('active-tool', tool === 'bucket');
-    };
-
-    // --- Atalhos de Teclado (Opcional, mas muito útil) ---
-    window.addEventListener('keydown', (e) => {
-        if (e.key.toLowerCase() === 'p') setTool('pencil');
-        if (e.key.toLowerCase() === 'e') setTool('eraser');
-        if (e.key.toLowerCase() === 'b') setTool('bucket');
-    });
-
-    // --- Listeners ---
-    btnPencil.addEventListener('click', () => setTool('pencil'));
-    btnEraser.addEventListener('click', () => setTool('eraser'));
-    btnBucket.addEventListener('click', () => setTool('bucket'));
-
-    const saveCurrentFrame = () => {
+ function saveCurrentFrame(){
         frames[currentFrameIndex] = paintCanvas.toDataURL();
     };
 
-    const drawOnionSkin = () => {
+    function drawOnionSkin(){
         onionCtx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
         
         // Se a opção estiver desligada ou for o primeiro frame, não desenha nada
@@ -293,7 +326,7 @@ function pageLoad() {
         img.src = prevFrameData;
     };
 
-    const loadFrame = (index) => {
+    function loadFrame(index){
         currentFrameIndex = index;
 
         // 1. Carrega o frame atual no canvas de pintura
@@ -311,21 +344,21 @@ function pageLoad() {
 
     // --- Ações de Navegação e Edição ---
 
-    const nextFrame = () => {
+    function nextFrame(){
         if (currentFrameIndex < frames.length - 1) {
             saveCurrentFrame(); // Salva o estado do atual
             loadFrame(currentFrameIndex + 1);
         }
     };
 
-    const prevFrame = () => {
+    function prevFrame(){
         if (currentFrameIndex > 0) {
             saveCurrentFrame(); // Salva o estado do atual
             loadFrame(currentFrameIndex - 1);
         }
     };
 
-    const addNewFrame = () => {
+    function addNewFrame(){
         saveCurrentFrame();
         // Limpa apenas o canvas de desenho
         paintCtx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
@@ -337,23 +370,23 @@ function pageLoad() {
 
     // --- Lógica de Desenho ---
 
-        const draw = (e) => {
-            if (!isDrawing) return;
-            const pos = getMousePos(e);
+    function draw(e){
+        if (!isDrawing) return;
+        const pos = getMousePos(e);
 
-            if (currentTool === 'pencil') {
-                // Modo Normal: Desenha a cor selecionada
-                paintCtx.globalCompositeOperation = 'source-over';
-                paintCtx.fillStyle = colorPicker.value;
-                paintCtx.fillRect(pos.x, pos.y, 1, 1);
-            } else if (currentTool === 'eraser') {
-                // Modo Borracha: "Corta" o pixel deixando-o transparente
-                paintCtx.globalCompositeOperation = 'destination-out';
-                paintCtx.fillRect(pos.x, pos.y, 1, 1);
-            }
-        };
+        if (currentTool === 'pencil') {
+            // Modo Normal: Desenha a cor selecionada
+            paintCtx.globalCompositeOperation = 'source-over';
+            paintCtx.fillStyle = colorPicker.value;
+            paintCtx.fillRect(pos.x, pos.y, 1, 1);
+        } else if (currentTool === 'eraser') {
+            // Modo Borracha: "Corta" o pixel deixando-o transparente
+            paintCtx.globalCompositeOperation = 'destination-out';
+            paintCtx.fillRect(pos.x, pos.y, 1, 1);
+        }
+    };
 
-    const getMousePos = (e) => {
+    function getMousePos(e){
         const rect = paintCanvas.getBoundingClientRect();
         // Mapeia a coordenada do clique (visual) para a coordenada do canvas (32x32)
         return {
@@ -361,6 +394,50 @@ function pageLoad() {
             y: Math.floor((e.clientY - rect.top) * (CANVAS_SIZE / rect.height))
         };
     };
+
+    function restartPreview(){
+        clearTimeout(previewTimeout);
+        updatePreview();
+    };
+
+function clearFrame() {
+        // Limpa o contexto de desenho
+        paintCtx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+        // Atualiza o array de frames e o preview
+        saveCurrentFrame();
+        // Se houver um frame posterior, o onion skin dele precisará de ser atualizado
+        // (Isso acontece automaticamente ao navegar entre frames no seu sistema atual)
+}
+
+function pageLoad() {
+
+    // Configuração para Pixel Art em ambos os contextos
+    paintCtx.imageSmoothingEnabled = false;
+    onionCtx.imageSmoothingEnabled = false;
+    // Configuração do Preview
+    previewCtx.imageSmoothingEnabled = false;
+
+    // --- Atalhos de Teclado (Opcional, mas muito útil) ---
+    window.addEventListener('keydown', (e) => {
+        if (e.key.toLowerCase() === 'p') setTool('pencil');
+        if (e.key.toLowerCase() === 'e') setTool('eraser');
+        if (e.key.toLowerCase() === 'b') setTool('bucket');
+    });
+
+    // --- Listeners ---
+    btnPencil.addEventListener('click', () => setTool('pencil'));
+    btnEraser.addEventListener('click', () => setTool('eraser'));
+    btnBucket.addEventListener('click', () => setTool('bucket'));
+
+    btnClear.addEventListener('click', clearFrame);
+
+    // Listener para o checkbox
+    chkGrid.addEventListener('change', drawGrid);
+
+    // Inicializa a grade
+    drawGrid();
+
+   
 
     paintCanvas.addEventListener('mousedown', (e) => {
         const pos = getMousePos(e);
@@ -389,10 +466,10 @@ function pageLoad() {
     });
 
     paintCanvas.addEventListener('mousemove', draw);
-    paintCanvas.addEventListener('mousedown', (e) => {
-        isDrawing = true;
-        draw(e); 
-    });
+    // paintCanvas.addEventListener('mousedown', (e) => {
+    //     isDrawing = true;
+    //     draw(e); 
+    // });
 
     // --- Listeners da UI ---
     btnPrev.addEventListener('click', prevFrame);
@@ -411,36 +488,9 @@ function pageLoad() {
     createPaletteRow('#808080');
     // --- Lógica da Animação de Preview ---
 
-    const updatePreview = () => {
-        if (frames.length === 0) return;
-
-        // Limpa e desenha o frame atual da animação
-        const img = new Image();
-        img.onload = () => {
-            previewCtx.clearRect(0, 0, 32, 32);
-            previewCtx.drawImage(img, 0, 0);
-            
-            // Avança para o próximo frame circularmente
-            previewFrameIndex = (previewFrameIndex + 1) % frames.length;
-            
-            // Calcula o tempo baseado no FPS (1000ms / FPS)
-            const delay = 1000 / parseInt(fpsInput.value || 8);
-            
-            // Agenda o próximo frame
-            previewTimeout = setTimeout(updatePreview, delay);
-        };
-        
-        // Se estivermos editando o frame que o preview quer mostrar, 
-        // pegamos a versão mais atual direto do canvas se necessário,
-        // mas usar o array 'frames' costuma ser mais performático.
-        img.src = frames[previewFrameIndex];
-    };
+    
 
     // Função para resetar o loop se o FPS mudar ou frames forem adicionados
-    const restartPreview = () => {
-        clearTimeout(previewTimeout);
-        updatePreview();
-    };
 
     // --- Listeners ---
     fpsInput.addEventListener('change', restartPreview);

@@ -9,9 +9,10 @@
 
     <div class="toolbar">
         <div class="tool-group">
-            <button id="btnPencil" class="active-tool" title="Lápis (P)">✏️</button>
-            <button id="btnEraser" title="Borracha (E)">🧼</button>
-            <button id="btnBucket">🪣</button>
+            <button id="btnPencil" class="active-tool" title="Lápis (P)"><img src="assets/pencil.png"></button>
+            <button id="btnEraser" title="Borracha (E)"><img src="assets/eraser.png"></button>
+            <button id="btnBucket"><img src="assets/paintbucket.png"></button>
+            <button id="btnClearFrame" title="Limpar Frame Atual"><img src="assets/clear.png"></button>
         </div>
 
         <input type="color" id="colorPicker" value="#00FF00">
@@ -22,13 +23,16 @@
             <button id="btnNext">Próx &gt;</button>
         </div>
 
-        <button id="btnAddFrame">+ Novo</button>
+        <button id="btnAddFrame"><img src="assets/addFrame.png"></button>
         
         <div class="config-group">
             <label>
                 <input type="checkbox" id="chkOnion" checked> Onion Skin
             </label>
         </div>
+
+        
+        <label><input type="checkbox" id="chkGrid" checked> Exibir/Esconder Grade</label>
 
         <button id="btnExport">Exportar PNG</button>
         <button id="btnExportGif">Exportar GIF</button>
@@ -37,6 +41,7 @@
     <div class="canvas-container">
         <canvas id="onionCanvas" width="32" height="32"></canvas>
         <canvas id="paintCanvas" width="32" height="32"></canvas>
+        <canvas id="gridCanvas" width="320" height="320"></canvas>
     </div>
 
     <div class="preview-panel">
