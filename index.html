@@ -11,20 +11,20 @@
         <div class="tool-group">
             <button id="btnPencil" class="active-tool" title="Lápis (P)"><img src="assets/pencil.png"></button>
             <button id="btnEraser" title="Borracha (E)"><img src="assets/eraser.png"></button>
-            <button id="btnBucket"><img src="assets/paintbucket.png"></button>
+            <button id="btnBucket" title="Balde de tinta (B)"><img src="assets/paintbucket.png"></button>
             <button id="btnClearFrame" title="Limpar Frame Atual"><img src="assets/clear.png"></button>
         </div>
 
         <input type="color" id="colorPicker" value="#00FF00">
         
         <div class="nav-group">
-            <button id="btnPrev">&lt; Ant</button>
+            <button id="btnPrev" title="Frame anterior"><img src="assets/previous.png"></button>
             <span id="frameIndicator">Frame: 1 / 1</span>
-            <button id="btnNext">Próx &gt;</button>
+            <button id="btnNext" title="Próximo frame"><img src="assets/next.png"></button>
+            <button id="btnAddFrame" title="Adicionar frame"><img src="assets/addFrame.png"></button>
+            <button id="btnDuplicateFrame" title="Duplicar Frame"><img src="assets/duplicateFrame.png"></button>
+            <button id="btnDeleteFrame" title="Excluir Frame (Cuidado, se você excluir o frame errado pode perder parte do seu trabalho)"><img src="assets/removeframe.png"></button>
         </div>
-
-        <button id="btnAddFrame" title="Adicionar frame"><img src="assets/addFrame.png"></button>
-        <button id="btnDuplicateFrame" title="Duplicar Frame"><img src="assets/duplicateFrame.png"></button>
         
         <div class="config-group">
             <label>
@@ -35,8 +35,8 @@
         
         <label><input type="checkbox" id="chkGrid" checked> Exibir/Esconder Grade</label>
 
-        <button id="btnExport">Exportar PNG</button>
-        <button id="btnExportGif">Exportar GIF</button>
+        <button id="btnExport" title="Exportar PNG"><img src="assets/png.png"></button>
+        <button id="btnExportGif" title="Exportar GIF"><img src="assets/gif.png"></button>
     </div>
 
     <div class="canvas-container">
@@ -57,7 +57,7 @@
         <div id="paletteRows">
             </div>
         <div class="palette-actions">
-            <input type="color" id="mainColorPicker" value="#007bff">
+            <input type="color" id="paleteColorPicker" value="#007bff">
             <button id="btnAddPaletteRow">+ Adicionar Cor</button>
         </div>
     </div>

@@ -18,6 +18,7 @@ const btnPrev = document.getElementById('btnPrev');
 const btnNext = document.getElementById('btnNext');
 const btnAdd = document.getElementById('btnAddFrame');
 const btnDuplicate = document.getElementById('btnDuplicateFrame');
+const btnDelete = document.getElementById('btnDeleteFrame');
 
 const btnExport = document.getElementById('btnExport');
 const btnExportGif = document.getElementById('btnExportGif');
@@ -32,7 +33,7 @@ const previewCtx = previewCanvas.getContext('2d');
 const fpsInput = document.getElementById('fpsInput');
 
 const paletteRows = document.getElementById('paletteRows');
-const mainColorPicker = document.getElementById('mainColorPicker');
+const paleteColorPicker = document.getElementById('paleteColorPicker');
 const btnAddPaletteRow = document.getElementById('btnAddPaletteRow');
 
 const gridCanvas = document.getElementById('gridCanvas');
@@ -385,6 +386,32 @@ function duplicateFrame() {
     loadFrame(currentFrameIndex + 1);
 }
 
+function deleteFrame() {
+    // 1. Regra de segurança: Sempre deve haver pelo menos um frame
+    if (frames.length <= 1) {
+        alert("Não é possível excluir o único frame da animação.");
+        return;
+    }
+
+    // 2. Confirmação para evitar cliques acidentais
+    // if (confirm(`Deseja realmente excluir o frame ${currentFrameIndex + 1}?`)) {
+        // Remove o frame do array
+        frames.splice(currentFrameIndex, 1);
+
+        // 3. Ajuste de índice: 
+        // Se deletarmos o último frame, voltamos para o novo "último"
+        if (currentFrameIndex >= frames.length) {
+            currentFrameIndex = frames.length - 1;
+        }
+
+        // 4. Recarrega a UI com o novo estado
+        loadFrame(currentFrameIndex);
+        
+        // Opcional: Reinicia o preview para atualizar a duração da animação
+        if (typeof restartPreview === 'function') restartPreview();
+    // }
+}
+
     // --- Lógica de Desenho ---
 
     function draw(e){
@@ -493,6 +520,7 @@ function pageLoad() {
     btnNext.addEventListener('click', nextFrame);
     btnAdd.addEventListener('click', addNewFrame);
     btnDuplicate.addEventListener('click', duplicateFrame);
+    btnDelete.addEventListener('click', deleteFrame);
     
     // Atualiza a visualização se o usuário ligar/desligar o Onion Skin
     chkOnion.addEventListener('change', drawOnionSkin);
@@ -502,7 +530,7 @@ function pageLoad() {
     btnExportGif.addEventListener('click', exportGif);
 
     // Adiciona uma cor inicial (ex: cinza ou azul)
-    btnAddPaletteRow.onclick = () => {createPaletteRow(mainColorPicker.value);};
+    btnAddPaletteRow.onclick = () => {createPaletteRow(paleteColorPicker.value);};
     createPaletteRow('#808080');
     // --- Lógica da Animação de Preview ---
 

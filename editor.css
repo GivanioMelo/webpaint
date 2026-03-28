@@ -163,3 +163,17 @@ h4
     background-color: #cc0000;
 }
 
+#paleteColorPicker
+{
+    width: 140px;
+}
+
+#colorPicker{
+    width: 49px;
+    height: 49px;
+}
+
+/* No editor.css */
+#btnDeleteFrame:hover {
+    background-color: #ff4444; /* Vermelho para indicar perigo/exclusão */
+}
