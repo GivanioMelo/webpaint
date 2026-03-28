@@ -191,3 +191,8 @@ h4
 #btnDeleteFrame:hover {
     background-color: #ff4444; /* Vermelho para indicar perigo/exclusão */
 }
+
+h4 > img {
+    width: 24px;
+    height: 24px;
+}

@@ -605,11 +605,56 @@ function updateView() {
     drawGrid();
 }
 
+function zoomWheel(e) {
+    // 1. Impede que a página inteira role para cima/baixo
+    e.preventDefault();
+
+    // 2. Define a sensibilidade do zoom (0.1 = 10% por "click" do scroll)
+    const zoomSpeed = 0.5;
+    const delta = e.deltaY > 0 ? -zoomSpeed : zoomSpeed;
+    const oldScale = scale;
+
+    console.log("delta:" + delta);
+
+    // 3. Calcula o novo zoom respeitando os limites (0.5 a 10.0)
+    let newScale = scale + delta;
+    if (newScale < 0.5) newScale = 0.5;
+    if (newScale > 20.0) newScale = 20;
+
+    // Só reprocessa se o zoom realmente mudou
+    if (newScale !== oldScale) {
+        // --- LÓGICA DE ZOOM NO CURSOR ---
+        // Pegamos a posição do mouse em relação ao viewport
+        const rect = viewPort.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        // Calculamos onde o mouse está "pisando" no desenho antes do zoom
+        const pointX = (mouseX - panX) / oldScale;
+        const pointY = (mouseY - panY) / oldScale;
+
+        console.log("scale:"+scale);
+        // Atualizamos a escala
+        scale = newScale;
+
+        // Ajustamos o Pan para que o ponto calculado continue sob o mouse
+        panX = mouseX - (pointX * scale);
+        panY = mouseY - (pointY * scale);
+
+        console.log("scale: "+scale);
+        console.log("mouse: " + mouseX + " " + mouseY);
+        console.log("point: " + pointX + " " + pointY);
+        console.log("pan: " + panX + " " + panY);
+
+        updateView();
+    }
+}
+
 function adjustZoom(delta) 
 {
-    const newScale = scale + delta;
+    let newScale = scale + delta;
     if (newScale < 0.5) newScale = 0.5;
-    if (newScale > 10.0) newScale = 10;
+    if (newScale > 20.0) newScale = 20;
     
     scale = newScale;
     updateView();
@@ -680,6 +725,8 @@ function pageLoad() {
     //posição inicial do canvas quando a pagina carregar
     panX = (window.innerWidth - (CANVAS_SIZE * scale))/2;
     panY = 20;
+
+    viewPort.addEventListener('wheel', (e) => zoomWheel(e), { passive: false }); // 'passive: false' é obrigatório para permitir o preventDefault()
 
     btnClear.addEventListener('click', clearFrame);
 
@@ -798,3 +845,5 @@ function pageLoad() {
 }
 
 window.addEventListener('load', pageLoad);
+
+
