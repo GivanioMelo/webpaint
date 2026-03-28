@@ -17,6 +17,8 @@ const chkOnion = document.getElementById('chkOnion');
 const btnPrev = document.getElementById('btnPrev');
 const btnNext = document.getElementById('btnNext');
 const btnAdd = document.getElementById('btnAddFrame');
+const btnDuplicate = document.getElementById('btnDuplicateFrame');
+
 const btnExport = document.getElementById('btnExport');
 const btnExportGif = document.getElementById('btnExportGif');
 
@@ -368,6 +370,21 @@ function updatePreview(){
         loadFrame(frames.length - 1);
     };
 
+function duplicateFrame() {
+    // 1. Guarda o estado atual do canvas no array
+    saveCurrentFrame();
+    
+    // 2. Obtém os dados (DataURL) do frame que queremos copiar
+    const frameDataParaCopiar = frames[currentFrameIndex];
+    
+    // 3. Insere a cópia no array logo após o frame atual
+    // O método splice(índice, quantos_remover, item) é ideal para inserções
+    frames.splice(currentFrameIndex + 1, 0, frameDataParaCopiar);
+    
+    // 4. Carrega o novo frame duplicado
+    loadFrame(currentFrameIndex + 1);
+}
+
     // --- Lógica de Desenho ---
 
     function draw(e){
@@ -475,6 +492,7 @@ function pageLoad() {
     btnPrev.addEventListener('click', prevFrame);
     btnNext.addEventListener('click', nextFrame);
     btnAdd.addEventListener('click', addNewFrame);
+    btnDuplicate.addEventListener('click', duplicateFrame);
     
     // Atualiza a visualização se o usuário ligar/desligar o Onion Skin
     chkOnion.addEventListener('change', drawOnionSkin);

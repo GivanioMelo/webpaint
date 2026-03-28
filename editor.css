@@ -87,12 +87,14 @@ canvas
     border-radius: 8px;
     text-align: center;
 }
+
 #previewCanvas {
     width: 128px; /* Miniatura ampliada para visibilidade */
     height: 128px;
     background: #eee;
     image-rendering: pixelated;
     border: 1px solid #000;
+    display: block;
     margin-bottom: 5px;
 }
 
