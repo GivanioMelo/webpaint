@@ -224,51 +224,61 @@ function exportPNG()
     });
 }
 
-function exportGif()
-{
-    if (frames.length === 0) return alert("Adicione frames para criar um GIF!");
+async function exportGif() {
+    if (frames.length === 0) {
+        alert("Adicione pelo menos um frame para exportar!");
+        return;
+    }
 
-    // 1. Criar a instância do GIF
-    // O workerScript deve apontar para o local do arquivo gif.worker.js
-    const gif = new GIF({
-        workers: 2,
-        quality: 1, // Melhor qualidade para Pixel Art
-        width: CANVAS_SIZE,
-        height: CANVAS_SIZE,
-        workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
-    });
+    const { GIFEncoder, quantize, applyPalette } = GIF;
+    
+    const encoder = GIFEncoder();
+    const fps = parseInt(fpsInput.value || 8);
+    const delay = 1000 / fps;
 
-    const delay = 1000 / parseInt(fpsInput.value || 8);
-    let loadedCount = 0;
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCanvas.width = CANVAS_SIZE;
+    tempCanvas.height = CANVAS_SIZE;
 
-    // 2. Carregar cada frame para o objeto GIF
-    frames.forEach((frameData, index) => {
-        const img = new Image();
-        img.onload = () => {
-            // Adiciona o frame com o atraso calculado pelo FPS
-            gif.addFrame(img, { delay: delay });
-            loadedCount++;
+    console.log("Iniciando exportação de GIF...");
 
-            // 3. Quando todos os frames carregarem, renderizar
-            if (loadedCount === frames.length) {
-                btnExportGif.innerText = "Renderizando...";
-                gif.render();
-            }
-        };
-        img.src = frameData;
-    });
+    for (const frameData of frames) {
+        // 1. Carrega o frame (Base64) para o canvas temporário
+        await new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                tempCtx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+                tempCtx.drawImage(img, 0, 0);
+                resolve();
+            };
+            img.src = frameData;
+        });
 
-    // 4. O que fazer quando o GIF estiver pronto
-    gif.on('finished', (blob) => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `animacao_${Date.now()}.gif`;
-        link.click();
+        // 2. Extrai os pixels do canvas
+        const { data } = tempCtx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
         
-        btnExportGif.innerText = "Exportar GIF";
-        alert("GIF gerado com sucesso!");
-    });
+        // 3. Cria a paleta de cores (essencial para GIFs de alta qualidade)
+        const palette = quantize(data, 256);
+        const index = applyPalette(data, palette);
+
+        // 4. Escreve o frame no encoder
+        encoder.writeFrame(index, CANVAS_SIZE, CANVAS_SIZE, { palette, delay });
+    }
+
+    // 5. Finaliza e faz o download
+    encoder.finish();
+    const buffer = encoder.bytes();
+    const blob = new Blob([buffer], { type: 'image/gif' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'animacao.gif';
+    link.click();
+    
+    URL.revokeObjectURL(url);
+    console.log("GIF exportado com sucesso!");
 }
 
 function drawGrid() {
