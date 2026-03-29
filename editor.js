@@ -232,8 +232,7 @@ async function exportGif() {
         return;
     }
 
-    // const { GIFEncoder, quantize, applyPalette } = GIF;
-    
+    // Desestruturação dos utilitários da gifenc
     const encoder = GIFEncoder();
     const fps = parseInt(fpsInput.value || 8);
     const delay = 1000 / fps;
@@ -243,13 +242,13 @@ async function exportGif() {
     tempCanvas.width = CANVAS_SIZE;
     tempCanvas.height = CANVAS_SIZE;
 
-    console.log("Iniciando exportação de GIF...");
+    console.log("Iniciando exportação de GIF com transparência...");
 
     for (const frameData of frames) {
-        // 1. Carrega o frame (Base64) para o canvas temporário
         await new Promise((resolve) => {
             const img = new Image();
             img.onload = () => {
+                // Importante: Limpar com transparência total antes de desenhar o frame
                 tempCtx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
                 tempCtx.drawImage(img, 0, 0);
                 resolve();
@@ -257,18 +256,41 @@ async function exportGif() {
             img.src = frameData;
         });
 
-        // 2. Extrai os pixels do canvas
-        const { data } = tempCtx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-        
-        // 3. Cria a paleta de cores (essencial para GIFs de alta qualidade)
+        const imageData = tempCtx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+        const { data } = imageData;
+
+        // 1. Criar a paleta (máximo 256 cores)
         const palette = quantize(data, 256);
+        
+        // 2. Aplicar a paleta para obter os índices dos pixels
         const index = applyPalette(data, palette);
 
-        // 4. Escreve o frame no encoder
-        encoder.writeFrame(index, CANVAS_SIZE, CANVAS_SIZE, { palette, delay });
+        // 3. Encontrar o índice da cor transparente
+        // O gifenc geralmente coloca a transparência no final ou mapeia pixels 0,0,0,0
+        // Vamos procurar na paleta o índice que representa o pixel transparente
+        let transparentIndex = -1
+        for (let i = 0; i < palette.length; i++) {
+            let color = palette[i];
+            // let r = color[0];
+            // let g = color[1];
+            // let b = color[2];
+            let alpha = color[3];
+            if (alpha == 0) transparentIndex = i;
+        }
+
+        let containsTransparence = transparentIndex != -1;
+        if (transparentIndex == -1) transparentIndex = 0;
+
+        // 4. Escrever o frame com a opção 'transparent' e 'transparentIndex'
+        encoder.writeFrame(index, CANVAS_SIZE, CANVAS_SIZE, { 
+            palette, 
+            delay,
+            transparent: containsTransparence,
+            transparentIndex: transparentIndex,
+            disposal: 2 
+        });
     }
 
-    // 5. Finaliza e faz o download
     encoder.finish();
     const buffer = encoder.bytes();
     const blob = new Blob([buffer], { type: 'image/gif' });
@@ -276,11 +298,11 @@ async function exportGif() {
     
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'animacao.gif';
+    link.download = 'pixel-art-transparente.gif';
     link.click();
     
     URL.revokeObjectURL(url);
-    console.log("GIF exportado com sucesso!");
+    console.log("GIF Transparente exportado!");
 }
 
 function drawGrid() {
