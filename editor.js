@@ -224,13 +224,15 @@ function exportPNG()
     });
 }
 
+import {GIFEncoder, quantize, applyPalette} from 'https://unpkg.com/gifenc@1.0.3';
+
 async function exportGif() {
     if (frames.length === 0) {
         alert("Adicione pelo menos um frame para exportar!");
         return;
     }
 
-    const { GIFEncoder, quantize, applyPalette } = GIF;
+    // const { GIFEncoder, quantize, applyPalette } = GIF;
     
     const encoder = GIFEncoder();
     const fps = parseInt(fpsInput.value || 8);
