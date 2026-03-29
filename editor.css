@@ -167,14 +167,14 @@ h4
 
 /* No ficheiro editor.css */
 #btnClearFrame {
-    background-color: #ff4444;
     color: white;
-    border: 1px solid #cc0000;
     border-radius: 4px;
 }
-
 #btnClearFrame:hover {
     background-color: #cc0000;
+}
+#btnDeleteFrame:hover {
+    background-color: #cc0000; /* Vermelho para indicar perigo/exclusão */
 }
 
 #paleteColorPicker
@@ -187,10 +187,8 @@ h4
     height: 49px;
 }
 
-/* No editor.css */
-#btnDeleteFrame:hover {
-    background-color: #ff4444; /* Vermelho para indicar perigo/exclusão */
-}
+
+
 
 h4 > img {
     width: 24px;
