@@ -68,7 +68,8 @@ const gridCanvas = document.getElementById('gridCanvas');
 const gridCtx = gridCanvas.getContext('2d');
 const chkGrid = document.getElementById('chkGrid');
 
-
+const inputLoadPng = document.getElementById('inputLoadPng');
+const btnLoadPng = document.getElementById('btnLoadPng');
 
  // 'pencil' ou 'eraser'
 var currentTool = 'pencil';
@@ -194,6 +195,80 @@ function floodFill(startX, startY, fillColor)
     }
     paintCtx.putImageData(imageData, 0, 0);
     saveCurrentFrame(); // Atualiza o array de frames e o preview
+}
+
+function loadPNG(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+            const h = img.height;
+            const w = img.width;
+
+            // 1. Validação de proporção (Orientação)
+            if (h > w) {
+                alert("Erro: A altura é maior que a largura. O arquivo deve ser uma Spritesheet horizontal (frames lado a lado).");
+                return;
+            }
+
+            // 2. Validação de tamanho padrão
+            // Lista de tamanhos permitidos baseada no seu selectSize
+            const tamanhosPadrao = [16, 24, 32, 48, 64, 96, 128, 256, 512];
+            if (!tamanhosPadrao.includes(h)) {
+                alert(`Erro: A altura da imagem (${h}px) não corresponde a nenhum dos tamanhos padrão do editor: ${tamanhosPadrao.join(', ')}.`);
+                return;
+            }
+
+            // 3. Validação de múltiplo (Largura deve ser divisível pela altura)
+            if (w % h !== 0) {
+                alert(`Erro: A largura (${w}px) não é um múltiplo exato da altura (${h}px). Os frames não podem ser cortados perfeitamente.`);
+                return;
+            }
+
+            // Se passou nas validações, processa os frames
+            if (confirm(`Imagem detectada: ${h}x${h} pixels por frame. Isso substituirá seu trabalho atual. Deseja continuar?`)) {
+                importSpritesheet(img, h);
+            }
+        };
+        img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+    // Reseta o input para permitir carregar o mesmo arquivo novamente se necessário
+    e.target.value = '';
+}
+
+function importSpritesheet(img, size) {
+    // Ajusta o tamanho do editor para o tamanho detectado
+    CANVAS_SIZE = size;
+    selectSize.value = size;
+    
+    // Limpa os frames atuais
+    frames = [];
+    currentFrameIndex = 0;
+
+    const numFrames = img.width / size;
+    
+    // Canvas temporário para fatiar
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCanvas.width = size;
+    tempCanvas.height = size;
+
+    for (let i = 0; i < numFrames; i++) {
+        tempCtx.clearRect(0, 0, size, size);
+        // Corta o pedaço da imagem original (x = i * size) e desenha no canvas 1:1
+        tempCtx.drawImage(img, i * size, 0, size, size, 0, 0, size, size);
+        frames.push(tempCanvas.toDataURL());
+    }
+
+    // Atualiza a UI e o Canvas principal
+    loadFrame(frames.length-1);
+    drawOnionSkin();
+    restartPreview();
+    alert(`Sucesso! ${numFrames} frames carregados.`);
 }
 
 function exportPNG()
@@ -855,6 +930,12 @@ function pageLoad() {
     
     // Atualiza a visualização se o usuário ligar/desligar o Onion Skin
     chkOnion.addEventListener('change', drawOnionSkin);
+
+    // --- importação (falta testar) ---
+    btnLoadPng.addEventListener('click', () => inputLoadPng.click());
+    inputLoadPng.addEventListener('change', (e)=>loadPNG(e));
+
+
 
     // --- Exportação (Spritesheet PNG) ---
     btnExport.addEventListener('click', exportPNG);
