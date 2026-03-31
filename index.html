@@ -47,17 +47,7 @@
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
 
-        .scanline-overlay {
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none;
-        }
 
-        .checkerboard {
-            background-color: #151515;
-            background-image: conic-gradient(#1a1a1a 90deg, transparent 90deg 180deg, #1a1a1a 180deg 270deg, transparent 270deg);
-            background-size: 16px 16px;
-        }
 
         /* Custom styles to hide standard color inputs */
         input[type="color"].invisible-color {
@@ -110,8 +100,7 @@
 
 <body
     class="bg-background text-on-surface font-body overflow-hidden selection:bg-primary-container selection:text-[white]">
-    <!-- Scanline Texture Layer -->
-    <div class="fixed inset-0 scanline-overlay z-[100] mix-blend-overlay pointer-events-none"></div>
+
 
     <!-- TopNavBar -->
     <header
@@ -228,7 +217,7 @@
                 tabindex="0">
                 <!-- Our canvas container inside viewport -->
                 <div id="canvasContainer"
-                    class="canvas-container absolute origin-top-left shadow-[0_0_40px_rgba(0,0,0,0.5)] border-2 border-surface-container-highest checkerboard"
+                    class="canvas-container absolute origin-top-left shadow-[0_0_40px_rgba(0,0,0,0.5)] border-2 border-surface-container-highest"
                     style="transform-origin: 0 0;">
                     <canvas id="onionCanvas"
                         class="absolute left-0 top-0 w-full h-full pointer-events-none opacity-50 z-[1] mix-blend-screen"
@@ -266,7 +255,7 @@
                 <div
                     class="border border-outline-variant border-fuchsia-900/30 p-2 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] bg-surface-container relative">
                     <canvas id="previewCanvas" width="32" height="32"
-                        class="w-24 h-24 checkerboard pixelated object-contain mx-auto mix-blend-screen"></canvas>
+                        class="w-24 h-24 pixelated object-contain mx-auto mix-blend-screen"></canvas>
                 </div>
             </div>
 
