@@ -778,6 +778,13 @@ function adjustViewPort()
     updateView();
 }
 
+function syncColorPickers(e)
+{
+    let color = e.target.value;
+    colorPicker.value = color;
+    paleteColorPicker.value = color;
+}
+
 function pageLoad() {
 
     viewPort.style.width = (window.innerWidth -40) + "px";
@@ -834,6 +841,9 @@ function pageLoad() {
     //posição inicial do canvas quando a pagina carregar
     panX = (window.innerWidth - (CANVAS_SIZE * scale))/2;
     panY = 20;
+
+    colorPicker.onchange = (e)=> syncColorPickers(e);
+    paleteColorPicker.onchange = (e)=>syncColorPickers(e);
 
     viewPort.addEventListener('wheel', (e) => zoomWheel(e), { passive: false }); // 'passive: false' é obrigatório para permitir o preventDefault()
 

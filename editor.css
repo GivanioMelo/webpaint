@@ -4,25 +4,48 @@ body
     font-family: sans-serif;
     display: flex;
     flex-direction: column;
-    align-items: center;
     background: #222;
     color: #fff;
 }
-.toolbar 
+
+header
 {
-    margin-bottom: 10px;
-    padding: 10px;
+    margin: 1px;
+    padding: 2px;
     background: #333;
     border-radius: 5px;
     display: flex;
-    gap: 10px;
-    align-items: center; 
+    gap: 10px;    
+}
+
+footer
+{
+    position: fixed;
+    bottom: 10px;
+    background: #333;
+    padding: 2px;
+    border: 2px solid #555;
+    border-radius: 8px;
+    width: 98%;
+    text-align: center;
+}
+
+.toolbar 
+{
+    position: fixed;
+    left: 10px;
+    top: 85px; /* Abaixo do Preview */
+    background: #333;
+    padding: 2px;
+    border: 2px solid #555;
+    border-radius: 8px;
+    width: 34px;
 }
 
 button 
 {
-    cursor: pointer;
     padding: 1px;
+    cursor: pointer;
 }
 button:hover
 {
@@ -32,6 +55,28 @@ button > img
 {
     width: 24px;
     height: 24px;
+}
+.toolButton
+{
+    width: 32px;
+    height: 32px;
+}
+
+/* Estilo para indicar a ferramenta selecionada */
+.active-tool {
+    background-color: #007bff;
+    color: white;
+    border: 1px solid #0056b3;
+}
+/* No ficheiro editor.css */
+#btnClearFrame {
+    color: white;
+}
+#btnClearFrame:hover {
+    background-color: #cc0000;
+}
+#btnDeleteFrame:hover {
+    background-color: #cc0000; /* Vermelho para indicar perigo/exclusão */
 }
 
 .viewport {
@@ -81,23 +126,14 @@ canvas
     z-index: 2;
     cursor: crosshair;
 }
-/* Estilo para indicar a ferramenta selecionada */
-.active-tool {
-    background-color: #007bff;
-    color: white;
-    border: 1px solid #0056b3;
-}
-.tool-group {
-    display: flex;
-    gap: 2px;
-    margin-right: 10px;
-}
+
+
 
 
 .preview-panel {
     position: absolute;
     top: 90px;
-    right: 20px;
+    right: 10px;
     background: #333;
     padding: 10px;
     border: 2px solid #555;
@@ -122,7 +158,7 @@ canvas
 
 .palette-panel {
     position: fixed;
-    right: 20px;
+    right: 10px;
     top: 280px; /* Abaixo do Preview */
     background: #333;
     padding: 10px;
@@ -168,17 +204,7 @@ h4
     opacity: 0.5;         /* Deixa a grade sutil */
 }
 
-/* No ficheiro editor.css */
-#btnClearFrame {
-    color: white;
-    border-radius: 4px;
-}
-#btnClearFrame:hover {
-    background-color: #cc0000;
-}
-#btnDeleteFrame:hover {
-    background-color: #cc0000; /* Vermelho para indicar perigo/exclusão */
-}
+
 
 #paleteColorPicker
 {
@@ -186,8 +212,8 @@ h4
 }
 
 #colorPicker{
-    width: 33px;
-    height: 33px;
+    width: 32px;
+    height: 32px;
 }
 
 
