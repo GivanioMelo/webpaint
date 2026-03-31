@@ -1,107 +1,395 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html class="dark" lang="pt-br">
+
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>WebPaint | Kinetic Grid Editor</title>
     <link rel="shortcut icon" href="assets/paint-palette.png" type="image/x-icon">
-    <title>Web Paint</title>
-    <link rel="stylesheet" href="editor.css">
+    <!-- Tailwind and Fonts -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-variant": "#353534",
+                        "surface-container": "#201f1f",
+                        "on-surface": "#e5e2e1",
+                        "surface-container-low": "#1c1b1b",
+                        "background": "#131313",
+                        "outline": "#a4899d",
+                        "outline-variant": "#564052",
+                        "primary-container": "#ff00ff",
+                        "surface-container-highest": "#353534",
+                        "surface-container-lowest": "#0e0e0e",
+                        "surface-container-high": "#2a2a2a",
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Manrope"],
+                        "label": ["Space Grotesk"]
+                    },
+                    borderRadius: { "DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .scanline-overlay {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .checkerboard {
+            background-color: #151515;
+            background-image: conic-gradient(#1a1a1a 90deg, transparent 90deg 180deg, #1a1a1a 180deg 270deg, transparent 270deg);
+            background-size: 16px 16px;
+        }
+
+        /* Custom styles to hide standard color inputs */
+        input[type="color"].invisible-color {
+            opacity: 0;
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .active-tool {
+            background-color: rgba(34, 211, 238, 0.2) !important;
+            color: #22d3ee !important;
+            box-shadow: inset 0 0 10px rgba(34, 211, 238, 0.2);
+            transition: 0.1s;
+        }
+
+        .pan-tool-active {
+            cursor: grab !important;
+        }
+
+        /* WebPaint Canvas Logic */
+        #canvasContainer {
+            position: relative;
+        }
+
+        canvas {
+            image-rendering: pixelated;
+        }
+
+        .palette-row {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 2px;
+        }
+
+        .color-swatch {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .color-swatch:hover {
+            border-color: #fff;
+        }
+    </style>
 </head>
-<body>
 
-    <header>
-        <div class="config-group">
-            <label for="selectSize">Tamanho:</label>
-            <select id="selectSize" title="Altere o tamanho da tela de pintura. ATENÇÃO: se você fizer isso durante a edição, o desenho será apagado.">
-                <option value="16">16x16</option>
-                <option value="24">24x24</option>
-                <option value="32" selected>32x32</option>
-                <option value="48">48x48</option>
-                <option value="64">64x64</option>
-                <option value="96">96x96</option>
-                <option value="128">128x128</option>
-                <option value="256">256x256</option>
-                <option value="512">512x512</option>
-            </select>
+<body
+    class="bg-background text-on-surface font-body overflow-hidden selection:bg-primary-container selection:text-[white]">
+    <!-- Scanline Texture Layer -->
+    <div class="fixed inset-0 scanline-overlay z-[100] mix-blend-overlay pointer-events-none"></div>
+
+    <!-- TopNavBar -->
+    <header
+        class="fixed top-0 w-full z-50 border-b-2 border-fuchsia-900/30 bg-gradient-to-r from-[#131313] via-[#1a1a1a] to-[#131313] shadow-[0_4px_20px_rgba(0,0,0,0.8)] flex justify-between items-center px-6 h-14 w-full">
+        <div class="flex items-center gap-8">
+            <span
+                class="text-2xl font-bold tracking-[-0.05em] text-fuchsia-500 drop-shadow-[0_0_8px_rgba(255,0,255,0.4)] font-['Space_Grotesk'] tracking-tighter uppercase cursor-default">WebPaint</span>
+            <nav class="hidden md:flex items-center gap-6">
+                <!-- Zoom controls -->
+                <div class="flex items-center gap-2">
+                    <button id="btnZoomOut" class="text-fuchsia-900/70 hover:text-fuchsia-300 transition-none"
+                        title="Zoom Out"><span class="material-symbols-outlined text-sm">zoom_out</span></button>
+                    <span id="zoomDisplay"
+                        class="font-['Space_Grotesk'] text-[12px] text-fuchsia-400 w-12 text-center pointer-events-none">100%</span>
+                    <button id="btnZoomIn" class="text-fuchsia-900/70 hover:text-fuchsia-300 transition-none"
+                        title="Zoom In"><span class="material-symbols-outlined text-sm">zoom_in</span></button>
+                </div>
+                <!-- Load PNG -->
+                <input type="file" id="inputLoadPng" accept="image/png" style="display: none;">
+                <button id="btnLoadPng"
+                    class="font-['Space_Grotesk'] tracking-tighter uppercase text-[12px] text-outline hover:text-fuchsia-300 transition-none flex items-center gap-1"><span
+                        class="material-symbols-outlined text-sm">file_upload</span> Load PNG</button>
+                <!-- Export -->
+                <button id="btnExport"
+                    class="font-['Space_Grotesk'] tracking-tighter uppercase text-[12px] text-outline hover:text-fuchsia-300 transition-none flex items-center gap-1"><span
+                        class="material-symbols-outlined text-sm">image</span> Export PNG</button>
+                <button id="btnExportGif"
+                    class="font-['Space_Grotesk'] tracking-tighter uppercase text-[12px] text-outline hover:text-fuchsia-300 transition-none flex items-center gap-1"><span
+                        class="material-symbols-outlined text-sm">gif</span> Export GIF</button>
+            </nav>
         </div>
-
-        
-
-        <div class="zoom-group">
-            <button id="btnZoomOut" class="toolButton" title="Zoom Out"><img src="assets/zoomOut.png"></button>
-            <span id="zoomDisplay">1000%</span>
-            <button id="btnZoomIn" class="toolButton" title="Zoom In"><img src="assets/zoomIn.png"></button>
-            <button id="btnPan" class="toolButton" title="Mover Tela (H)"><img src="assets/drag.png"></button>
-        </div>
-
-        
-        
-        <div class="config-group">
-            <label>
-                <input type="checkbox" id="chkOnion" checked> Onion Skin
+        <div class="flex items-center gap-4 z-50">
+            <!-- Canvas Size Setup -->
+            <label class="text-[12px] text-fuchsia-900/70 uppercase flex items-center gap-2" title="Tamanho">Size:
+                <select id="selectSize"
+                    class="bg-surface-container border border-outline-variant text-fuchsia-300 p-1 text-xs outline-none focus:border-fuchsia-500 rounded-none z-50">
+                    <option value="16">16x16</option>
+                    <option value="24">24x24</option>
+                    <option value="32" selected>32x32</option>
+                    <option value="48">48x48</option>
+                    <option value="64">64x64</option>
+                    <option value="96">96x96</option>
+                    <option value="128">128x128</option>
+                    <option value="256">256x256</option>
+                    <option value="512">512x512</option>
+                </select>
             </label>
         </div>
-
-        
-        <label><input type="checkbox" id="chkGrid" checked> Exibir/Esconder Grade</label>
-
-        <input type="file" id="inputLoadPng" accept="image/png" style="display: none;">
-        <button id="btnLoadPng" class="toolButton" title="Carregar Spritesheet PNG"><img src="assets/import_png.png"></button>
-
-        <button id="btnExport" class="toolButton" title="Exportar PNG"><img src="assets/export_png.png"></button>
-        <button id="btnExportGif" class="toolButton" title="Exportar GIF"><img src="assets/gif.png"></button>
     </header>
 
-    <!-- <div class="canvas-container">
-        <canvas id="onionCanvas" width="32" height="32"></canvas>
-        <canvas id="paintCanvas" width="32" height="32"></canvas>
-        <canvas id="gridCanvas" width="320" height="320"></canvas>
-    </div> -->
-
-    <div class="viewport" id="viewport">
-        <div class="canvas-container" id="canvasContainer">
-            <canvas id="onionCanvas" width="32" height="32"></canvas>
-            <canvas id="paintCanvas" width="32" height="32"></canvas>
-            <canvas id="gridCanvas" width="32" height="32"></canvas>
-        </div>
-    </div>
-
-    <div class="toolbar">
-        <button id="btnPencil" class="toolButton active-tool" title="Lápis (P)"><img src="assets/pencil.png"></button>
-        <button id="btnLine" class="toolButton" title="Linha Reta (L)"><img src="assets/line.png"></button>
-        <button id="btnEraser" class="toolButton" title="Borracha (E)"><img src="assets/eraser.png"></button>
-        <button id="btnBucket" class="toolButton" title="Balde de tinta (B)"><img src="assets/paintbucket.png"></button>
-        <button id="btnSelect" class="toolButton" title="Selecionar (S)"><img src="assets/select.png"></button>
-        <button id="btnClearFrame" class="toolButton" title="Limpar Frame Atual"><img src="assets/clear.png"></button>
-        <input type="color" id="colorPicker" value="#007bff">
-    </div>
-
-    <div class="preview-panel">
-        <canvas id="previewCanvas" width="32" height="32"></canvas>
-        <div class="preview-controls">
-            <label>FPS: <input type="number" id="fpsInput" value="8" min="1" max="24" style="width: 80px;" title="Ajuste da velocidade da animação em Frames Por Segundo (FPS)"></label>
-        </div>
-    </div>
-
-    <div class="palette-panel">
-        <h4><img src="assets/palete.png"> Paletas de Tons</h4>
-        <div id="paletteRows">
+    <div class="flex h-[100dvh] pt-14 pb-16">
+        <!-- SideNavBar (Left Toolbox) -->
+        <aside
+            class="fixed left-0 top-14 h-[calc(100vh-120px)] w-20 bg-[#0e0e0e] border-r-2 border-cyan-900/20 flex flex-col items-center py-4 gap-2 z-40 overflow-y-auto overflow-x-hidden">
+            <div class="flex flex-col items-center mb-2">
+                <span
+                    class="font-['Manrope'] text-[8px] tracking-[0.2em] font-bold uppercase text-cyan-900/50">TOOLS</span>
             </div>
-        <div class="palette-actions">
-            <input type="color" id="paleteColorPicker" value="#007bff">
-            <button id="btnAddPaletteRow"> Adicionar Paleta</button>
-        </div>
+            <button id="btnPencil"
+                class="toolButton active-tool group flex flex-col items-center gap-1 w-full py-2 text-cyan-900/50 hover:bg-cyan-950/30 transition-none duration-0"
+                title="Lápis (P)">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">edit</span>
+                <span class="font-['Manrope'] text-[10px] tracking-[0.1em] font-bold uppercase">Pencil</span>
+            </button>
+            <button id="btnEraser"
+                class="toolButton group flex flex-col items-center gap-1 w-full py-2 text-cyan-900/50 hover:bg-cyan-950/30 transition-none duration-0"
+                title="Borracha (E)">
+                <span class="material-symbols-outlined">ink_eraser</span>
+                <span class="font-['Manrope'] text-[10px] tracking-[0.1em] font-bold uppercase">Eraser</span>
+            </button>
+            <button id="btnBucket"
+                class="toolButton group flex flex-col items-center gap-1 w-full py-2 text-cyan-900/50 hover:bg-cyan-950/30 transition-none duration-0"
+                title="Balde de Tintas (B)">
+                <span class="material-symbols-outlined">format_color_fill</span>
+                <span class="font-['Manrope'] text-[10px] tracking-[0.1em] font-bold uppercase">Fill</span>
+            </button>
+            <button id="btnLine"
+                class="toolButton group flex flex-col items-center gap-1 w-full py-2 text-cyan-900/50 hover:bg-cyan-950/30 transition-none duration-0"
+                title="Linha (L)">
+                <span class="material-symbols-outlined">show_chart</span>
+                <span class="font-['Manrope'] text-[10px] tracking-[0.1em] font-bold uppercase">Line</span>
+            </button>
+            <button id="btnSelect"
+                class="toolButton group flex flex-col items-center gap-1 w-full py-2 text-cyan-900/50 hover:bg-cyan-950/30 transition-none duration-0"
+                title="Selecionar (S)">
+                <span class="material-symbols-outlined">select_all</span>
+                <span class="font-['Manrope'] text-[10px] tracking-[0.1em] font-bold uppercase">Select</span>
+            </button>
+            <button id="btnPan"
+                class="toolButton group flex flex-col items-center gap-1 w-full py-2 text-cyan-900/50 hover:bg-cyan-950/30 transition-none duration-0"
+                title="Pan / Mover (Space)">
+                <span class="material-symbols-outlined">pan_tool</span>
+                <span class="font-['Manrope'] text-[10px] tracking-[0.1em] font-bold uppercase">Pan</span>
+            </button>
+
+            <div class="mt-auto flex flex-col items-center w-full px-2 gap-2 pt-4 border-t border-cyan-900/20">
+                <label class="w-full flex flex-col items-center cursor-pointer group pb-2"
+                    title="Exibir/Esconder Grade">
+                    <div
+                        class="w-full aspect-square border border-cyan-500/30 flex items-center justify-center bg-cyan-500/5 group-hover:bg-cyan-500/20 relative">
+                        <input type="checkbox" id="chkGrid" checked class="absolute opacity-0">
+                        <span class="material-symbols-outlined text-cyan-400 text-sm">grid_view</span>
+                    </div>
+                </label>
+                <button id="btnClearFrame"
+                    class="w-full bg-red-900/20 border border-red-500/40 text-red-500 py-2 font-['Manrope'] text-[8px] font-bold tracking-widest uppercase hover:bg-red-900/50"
+                    title="Apagar todo o frame atual">CLR. FRAME</button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace Canvas -->
+        <main class="flex-1 ml-20 mr-72 p-0 flex relative bg-[#0e0e0e] h-full">
+            <div id="viewport" class="viewport absolute inset-0 overflow-hidden outline-none bg-surface-container-low"
+                tabindex="0">
+                <!-- Our canvas container inside viewport -->
+                <div id="canvasContainer"
+                    class="canvas-container absolute origin-top-left shadow-[0_0_40px_rgba(0,0,0,0.5)] border-2 border-surface-container-highest checkerboard"
+                    style="transform-origin: 0 0;">
+                    <canvas id="onionCanvas"
+                        class="absolute left-0 top-0 w-full h-full pointer-events-none opacity-50 z-[1] mix-blend-screen"
+                        width="32" height="32"></canvas>
+                    <canvas id="paintCanvas" class="absolute left-0 top-0 w-full h-full z-[2]" width="32"
+                        height="32"></canvas>
+                    <canvas id="gridCanvas" class="absolute left-0 top-0 w-full h-full pointer-events-none z-[3]"
+                        width="32" height="32"></canvas>
+                </div>
+            </div>
+
+            <!-- Corner Brackets Design -->
+            <div
+                class="absolute top-8 left-8 w-4 h-4 border-t-2 border-l-2 border-fuchsia-900 pointer-events-none z-10">
+            </div>
+            <div
+                class="absolute top-8 right-8 w-4 h-4 border-t-2 border-r-2 border-fuchsia-900 pointer-events-none z-10">
+            </div>
+            <div
+                class="absolute bottom-8 left-8 w-4 h-4 border-b-2 border-l-2 border-fuchsia-900 pointer-events-none z-10">
+            </div>
+            <div
+                class="absolute bottom-8 right-8 w-4 h-4 border-b-2 border-r-2 border-fuchsia-900 pointer-events-none z-10">
+            </div>
+        </main>
+
+        <!-- Right Sidebar (Color & Palettes) -->
+        <aside
+            class="fixed right-0 top-14 h-[calc(100vh-120px)] w-72 bg-surface-container-lowest border-l-2 border-outline-variant/20 flex flex-col p-4 z-40 overflow-hidden">
+            <!-- Preview Section -->
+            <div class="flex justify-center mb-6 mt-2 relative group">
+                <div
+                    class="absolute -inset-1 bg-primary-container opacity-10 blur-xl group-hover:opacity-20 transition-opacity">
+                </div>
+                <div
+                    class="border border-outline-variant border-fuchsia-900/30 p-2 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] bg-surface-container relative">
+                    <canvas id="previewCanvas" width="32" height="32"
+                        class="w-24 h-24 checkerboard pixelated object-contain mx-auto mix-blend-screen"></canvas>
+                </div>
+            </div>
+
+            <!-- Color Section -->
+            <div class="mb-4 text-center">
+                <h3
+                    class="font-['Space_Grotesk'] text-[11px] font-bold tracking-[0.2em] uppercase text-on-surface-variant mb-2 flex justify-between items-center text-left">
+                    MAIN COLOR <span
+                        class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_5px_rgba(34,211,238,0.8)]"></span>
+                </h3>
+                <div
+                    class="w-full h-12 border border-outline-variant/30 flex items-center justify-center bg-surface-container overflow-hidden rounded relative group hover:border-fuchsia-500/50">
+                    <input type="color" id="colorPicker" value="#007bff" class="invisible-color z-10">
+                    <div class="absolute inset-0 z-0 pointer-events-none flex items-center justify-center shadow-inner"
+                        id="colorPickerDisplay">
+                        <span
+                            class="mix-blend-difference text-white font-mono text-xs font-bold pointer-events-none tracking-widest uppercase">Select</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-1 flex flex-col min-h-0">
+                <h3
+                    class="font-['Space_Grotesk'] text-[11px] font-bold tracking-[0.2em] uppercase text-on-surface-variant mb-4 flex justify-between items-center mt-2 border-t border-outline-variant/20 pt-4">
+                    PALETTES
+                </h3>
+
+                <div class="flex gap-2 items-center mb-4 text-center">
+                    <div class="relative w-8 h-8 rounded border border-outline-variant shadow">
+                        <input type="color" id="paleteColorPicker" value="#007bff" class="invisible-color z-10">
+                        <div class="absolute inset-0 pointer-events-none bg-[#007bff] rounded" id="paleteColorDisplay">
+                        </div>
+                    </div>
+                    <button id="btnAddPaletteRow"
+                        class="bg-surface-container border border-outline-variant hover:border-fuchsia-500/50 px-2 py-[7px] text-xs text-outline font-bold flex-1 transition-colors uppercase tracking-wider">Generate
+                        Row</button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto space-y-1 block pr-2 no-scrollbar" id="paletteRows">
+                    <!-- Palette rows generated via JS -->
+                </div>
+
+                <!-- Layer Options -->
+                <div class="mt-4 border-t border-outline-variant/20 pt-4 space-y-2">
+                    <label
+                        class="flex items-center gap-2 text-xs text-outline cursor-pointer hover:text-white transition-colors uppercase font-bold tracking-widest">
+                        <input type="checkbox" id="chkOnion" checked
+                            class="rounded border-outline-variant bg-surface bg-surface-container text-fuchsia-500 focus:ring-fuchsia-500">
+                        <span>Onion Skin Enabled</span>
+                    </label>
+                </div>
+            </div>
+        </aside>
     </div>
 
-    <footer>
-            <button id="btnPrev" title="Frame anterior"><img src="assets/previous.png"></button>
-            <span id="frameIndicator">Frame: 1 / 1</span>
-            <button id="btnNext" title="Próximo frame"><img src="assets/next.png"></button>
-            <button id="btnAddFrame" title="Adicionar frame"><img src="assets/addFrame.png"></button>
-            <button id="btnDuplicateFrame" title="Duplicar Frame"><img src="assets/duplicateFrame.png"></button>
-            <button id="btnDeleteFrame" title="Excluir Frame (Cuidado, se você excluir o frame errado pode perder parte do seu trabalho)"><img src="assets/removeframe.png"></button>
+    <!-- BottomNavBar (Animation Timeline) -->
+    <footer
+        class="fixed bottom-0 w-full h-16 z-50 bg-[#131313] border-t-2 border-fuchsia-900/30 shadow-[0_-4px_20px_rgba(255,0,255,0.05)] flex items-center gap-6 px-4 md:px-8 overflow-hidden select-none">
+        <div class="flex items-center gap-4">
+            <button id="btnPrev"
+                class="text-fuchsia-900/40 hover:text-fuchsia-300 flex flex-col items-center justify-center group z-50 focus:outline-none"
+                title="Anterior">
+                <span class="material-symbols-outlined text-xl">skip_previous</span>
+            </button>
+            <span id="frameIndicator"
+                class="font-mono text-fuchsia-400 text-xs text-center w-24 tracking-widest font-bold">FRAME: 1/1</span>
+            <button id="btnNext"
+                class="text-fuchsia-900/40 hover:text-fuchsia-300 flex flex-col items-center justify-center group z-50 focus:outline-none"
+                title="Próximo">
+                <span class="material-symbols-outlined text-xl">skip_next</span>
+            </button>
+        </div>
+
+        <div class="flex items-center gap-2 border-l border-r border-fuchsia-900/20 px-6 h-full py-3">
+            <button id="btnAddFrame"
+                class="h-full px-5 border border-fuchsia-900/40 border-dashed bg-transparent flex items-center justify-center text-fuchsia-900/60 hover:text-fuchsia-400 hover:border-fuchsia-500 cursor-pointer transition-all gap-2 z-50"
+                title="Criar Novo Frame">
+                <span class="material-symbols-outlined text-[18px]">add</span>
+            </button>
+            <button id="btnDuplicateFrame"
+                class="h-full px-4 border border-fuchsia-900/20 bg-surface-container-low flex items-center justify-center text-fuchsia-900/60 hover:text-fuchsia-400 hover:border-fuchsia-500 cursor-pointer transition-all z-50"
+                title="Duplicar Frame Atual">
+                <span class="material-symbols-outlined text-[16px]">content_copy</span>
+            </button>
+            <button id="btnDeleteFrame"
+                class="h-full px-4 border border-red-900/20 bg-surface-container-highest flex items-center justify-center text-red-900/40 hover:text-red-400 hover:border-red-500 cursor-pointer transition-all z-50"
+                title="Apagar Frame Atual">
+                <span class="material-symbols-outlined text-[16px]">delete</span>
+            </button>
+        </div>
+
+        <div class="flex-1"></div>
+
+        <div class="flex items-center gap-4 font-['Manrope'] text-[10px] uppercase font-bold text-fuchsia-500">
+            <div
+                class="flex flex-col items-center border border-fuchsia-900/30 px-3 py-1 bg-surface-container-lowest z-50">
+                <span class="text-fuchsia-900/40 tracking-widest">FPS LIMIT</span>
+                <input type="number" id="fpsInput" value="8" min="1" max="24"
+                    class="w-12 text-center bg-transparent border-none p-0 text-lg text-fuchsia-400 focus:ring-0 font-mono">
+            </div>
+        </div>
     </footer>
 
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script> -->
+    <!-- Custom Script to sync picker display arrays (since color inputs are invisible) -->
+    <script>
+        const cp = document.getElementById('colorPicker');
+        const cpDisplay = document.getElementById('colorPickerDisplay');
+        const pcp = document.getElementById('paleteColorPicker');
+        const pcpDisplay = document.getElementById('paleteColorDisplay');
+
+        function updateDisplays() {
+            if (cpDisplay.style.backgroundColor !== cp.value) {
+                cpDisplay.style.backgroundColor = cp.value;
+            }
+            if (pcpDisplay.style.backgroundColor !== pcp.value) {
+                pcpDisplay.style.backgroundColor = pcp.value;
+            }
+        }
+
+        // Use an interval to guarantee syncing even if modified by JS code (.value sets) without DOM Events.
+        setInterval(updateDisplays, 200);
+    </script>
     <script src="editor.js" type="module"></script>
 </body>
+
 </html>
