@@ -185,39 +185,67 @@ function floodFill(startX, startY, fillColor) {
     const imageData = paintCtx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
     const pixels = imageData.data;
 
-    // Obtém a cor do pixel onde o usuário clicou
     const startPos = (startY * CANVAS_SIZE + startX) * 4;
     const startR = pixels[startPos];
     const startG = pixels[startPos + 1];
     const startB = pixels[startPos + 2];
     const startA = pixels[startPos + 3];
 
-    // Se a cor de preenchimento for igual à cor inicial, cancela para evitar loop infinito
-    if (startR === fillColor.r && startG === fillColor.g &&
-        startB === fillColor.b && startA === fillColor.a) return;
+    // Cor é considerada igual se a diferença de tom for mínima (lida com antialiasing leve)
+    // OU se ambos os pixels forem totalmente transparentes (invisíveis).
+    const matchColor = (pos) => {
+        const a = pixels[pos + 3];
+        if (startA === 0 && a === 0) return true;
+
+        const r = pixels[pos];
+        const g = pixels[pos + 1];
+        const b = pixels[pos + 2];
+        const tolerance = 5;
+
+        return Math.abs(r - startR) <= tolerance &&
+            Math.abs(g - startG) <= tolerance &&
+            Math.abs(b - startB) <= tolerance &&
+            Math.abs(a - startA) <= tolerance;
+    };
+
+    if (matchColor(startPos) &&
+        Math.abs(fillColor.r - startR) <= 5 &&
+        Math.abs(fillColor.g - startG) <= 5 &&
+        Math.abs(fillColor.b - startB) <= 5 &&
+        Math.abs(fillColor.a - startA) <= 5) {
+        return; // É praticamente a mesma cor, aborta.
+    }
+
+    // Pinta a origem antes de ir à pilha
+    pixels[startPos] = fillColor.r;
+    pixels[startPos + 1] = fillColor.g;
+    pixels[startPos + 2] = fillColor.b;
+    pixels[startPos + 3] = fillColor.a;
 
     const stack = [[startX, startY]];
 
     while (stack.length > 0) {
         const [x, y] = stack.pop();
-        const pos = (y * CANVAS_SIZE + x) * 4;
 
-        // Verifica se o pixel atual tem a mesma cor do ponto inicial
-        if (pixels[pos] === startR && pixels[pos + 1] === startG &&
-            pixels[pos + 2] === startB && pixels[pos + 3] === startA) {
+        const checkAndPush = (nx, ny) => {
+            if (nx >= 0 && nx < CANVAS_SIZE && ny >= 0 && ny < CANVAS_SIZE) {
+                const pos = (ny * CANVAS_SIZE + nx) * 4;
 
-            // Pinta o pixel
-            pixels[pos] = fillColor.r;
-            pixels[pos + 1] = fillColor.g;
-            pixels[pos + 2] = fillColor.b;
-            pixels[pos + 3] = fillColor.a;
+                if (matchColor(pos)) {
+                    // Pinta o pixel IMEDIATAMENTE antes do push.
+                    pixels[pos] = fillColor.r;
+                    pixels[pos + 1] = fillColor.g;
+                    pixels[pos + 2] = fillColor.b;
+                    pixels[pos + 3] = fillColor.a;
+                    stack.push([nx, ny]);
+                }
+            }
+        };
 
-            // Adiciona vizinhos à pilha (Cima, Baixo, Esquerda, Direita)
-            if (x > 0) stack.push([x - 1, y]);
-            if (x < CANVAS_SIZE - 1) stack.push([x + 1, y]);
-            if (y > 0) stack.push([x, y - 1]);
-            if (y < CANVAS_SIZE - 1) stack.push([x, y + 1]);
-        }
+        checkAndPush(x - 1, y); // Esquerda
+        checkAndPush(x + 1, y); // Direita
+        checkAndPush(x, y - 1); // Cima
+        checkAndPush(x, y + 1); // Baixo
     }
     paintCtx.putImageData(imageData, 0, 0);
     saveCurrentFrame(); // Atualiza o array de frames e o preview
@@ -412,8 +440,8 @@ function drawGrid() {
     if (scale < 5) return;
     if (!chkGrid.checked) return;
 
-    gridCtx.strokeStyle = "rgba(0, 0, 0, 1)"; // Cor da linha
-    gridCtx.lineWidth = 0.3; // Linha bem fina para a escala 32x32
+    gridCtx.strokeStyle = "rgba(255, 255, 255, 0.15)"; // Cor da linha (cinza claro translúcido para dark mode)
+    gridCtx.lineWidth = 0.5; // Um pouquinho mais espessa para melhorar a visibilidade
 
     gridCtx.beginPath();
     for (let i = 0; i <= CANVAS_SIZE; i++) {
@@ -808,8 +836,7 @@ function adjustViewPort() {
     updateView();
 }
 
-function syncColorPickers(e)
-{
+function syncColorPickers(e) {
     let color = e.target.value;
     colorPicker.value = color;
     paleteColorPicker.value = color;
@@ -878,8 +905,8 @@ function pageLoad() {
     panX = (window.innerWidth - (CANVAS_SIZE * scale)) / 2;
     panY = 20;
 
-    colorPicker.onchange = (e)=> syncColorPickers(e);
-    paleteColorPicker.onchange = (e)=>syncColorPickers(e);
+    colorPicker.onchange = (e) => syncColorPickers(e);
+    paleteColorPicker.onchange = (e) => syncColorPickers(e);
 
     viewPort.addEventListener('wheel', (e) => zoomWheel(e), { passive: false }); // 'passive: false' é obrigatório para permitir o preventDefault()
 
