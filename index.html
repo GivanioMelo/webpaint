@@ -14,6 +14,7 @@
         rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -111,24 +112,24 @@
             <nav class="hidden md:flex items-center gap-6">
                 <!-- Zoom controls -->
                 <div class="flex items-center gap-2">
-                    <button id="btnZoomOut" class="text-fuchsia-900/70 hover:text-fuchsia-300 transition-none"
+                    <button id="btnZoomOut" class="text-fuchsia-500/50 hover:text-fuchsia-300 transition-none"
                         title="Zoom Out"><span class="material-symbols-outlined text-sm">zoom_out</span></button>
                     <span id="zoomDisplay"
                         class="font-['Space_Grotesk'] text-[12px] text-fuchsia-400 w-12 text-center pointer-events-none">100%</span>
-                    <button id="btnZoomIn" class="text-fuchsia-900/70 hover:text-fuchsia-300 transition-none"
+                    <button id="btnZoomIn" class="text-fuchsia-500/50 hover:text-fuchsia-300 transition-none"
                         title="Zoom In"><span class="material-symbols-outlined text-sm">zoom_in</span></button>
                 </div>
                 <!-- Load PNG -->
                 <input type="file" id="inputLoadPng" accept="image/png" style="display: none;">
                 <button id="btnLoadPng"
-                    class="font-['Space_Grotesk'] tracking-tighter uppercase text-[12px] text-outline hover:text-fuchsia-300 transition-none flex items-center gap-1"><span
+                    class="font-['Space_Grotesk'] tracking-tighter uppercase text-[12px] text-fuchsia-400/70 hover:text-fuchsia-300 transition-none flex items-center gap-1"><span
                         class="material-symbols-outlined text-sm">file_upload</span> Load PNG</button>
                 <!-- Export -->
                 <button id="btnExport"
-                    class="font-['Space_Grotesk'] tracking-tighter uppercase text-[12px] text-outline hover:text-fuchsia-300 transition-none flex items-center gap-1"><span
+                    class="font-['Space_Grotesk'] tracking-tighter uppercase text-[12px] text-fuchsia-400/70 hover:text-fuchsia-300 transition-none flex items-center gap-1"><span
                         class="material-symbols-outlined text-sm">image</span> Export PNG</button>
                 <button id="btnExportGif"
-                    class="font-['Space_Grotesk'] tracking-tighter uppercase text-[12px] text-outline hover:text-fuchsia-300 transition-none flex items-center gap-1"><span
+                    class="font-['Space_Grotesk'] tracking-tighter uppercase text-[12px] text-fuchsia-400/70 hover:text-fuchsia-300 transition-none flex items-center gap-1"><span
                         class="material-symbols-outlined text-sm">gif</span> Export GIF</button>
             </nav>
         </div>
@@ -157,40 +158,40 @@
             class="fixed left-0 top-14 h-[calc(100vh-120px)] w-20 bg-[#0e0e0e] border-r-2 border-cyan-900/20 flex flex-col items-center py-4 gap-2 z-40 overflow-y-auto overflow-x-hidden">
             <div class="flex flex-col items-center mb-2">
                 <span
-                    class="font-['Manrope'] text-[8px] tracking-[0.2em] font-bold uppercase text-cyan-900/50">TOOLS</span>
+                    class="font-['Manrope'] text-[8px] tracking-[0.2em] font-bold uppercase text-cyan-600/50">TOOLS</span>
             </div>
             <button id="btnPencil"
-                class="toolButton active-tool group flex flex-col items-center gap-1 w-full py-2 text-cyan-900/50 hover:bg-cyan-950/30 transition-none duration-0"
+                class="toolButton active-tool group flex flex-col items-center gap-1 w-full py-2 text-cyan-500/40 hover:bg-cyan-950/30 transition-none duration-0"
                 title="Lápis (P)">
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">edit</span>
                 <span class="font-['Manrope'] text-[10px] tracking-[0.1em] font-bold uppercase">Pencil</span>
             </button>
             <button id="btnEraser"
-                class="toolButton group flex flex-col items-center gap-1 w-full py-2 text-cyan-900/50 hover:bg-cyan-950/30 transition-none duration-0"
+                class="toolButton group flex flex-col items-center gap-1 w-full py-2 text-cyan-500/40 hover:bg-cyan-950/30 transition-none duration-0"
                 title="Borracha (E)">
                 <span class="material-symbols-outlined">ink_eraser</span>
                 <span class="font-['Manrope'] text-[10px] tracking-[0.1em] font-bold uppercase">Eraser</span>
             </button>
             <button id="btnBucket"
-                class="toolButton group flex flex-col items-center gap-1 w-full py-2 text-cyan-900/50 hover:bg-cyan-950/30 transition-none duration-0"
+                class="toolButton group flex flex-col items-center gap-1 w-full py-2 text-cyan-500/40 hover:bg-cyan-950/30 transition-none duration-0"
                 title="Balde de Tintas (B)">
                 <span class="material-symbols-outlined">format_color_fill</span>
                 <span class="font-['Manrope'] text-[10px] tracking-[0.1em] font-bold uppercase">Fill</span>
             </button>
             <button id="btnLine"
-                class="toolButton group flex flex-col items-center gap-1 w-full py-2 text-cyan-900/50 hover:bg-cyan-950/30 transition-none duration-0"
+                class="toolButton group flex flex-col items-center gap-1 w-full py-2 text-cyan-500/40 hover:bg-cyan-950/30 transition-none duration-0"
                 title="Linha (L)">
                 <span class="material-symbols-outlined">show_chart</span>
                 <span class="font-['Manrope'] text-[10px] tracking-[0.1em] font-bold uppercase">Line</span>
             </button>
             <button id="btnSelect"
-                class="toolButton group flex flex-col items-center gap-1 w-full py-2 text-cyan-900/50 hover:bg-cyan-950/30 transition-none duration-0"
+                class="toolButton group flex flex-col items-center gap-1 w-full py-2 text-cyan-500/40 hover:bg-cyan-950/30 transition-none duration-0"
                 title="Selecionar (S)">
                 <span class="material-symbols-outlined">select_all</span>
                 <span class="font-['Manrope'] text-[10px] tracking-[0.1em] font-bold uppercase">Select</span>
             </button>
             <button id="btnPan"
-                class="toolButton group flex flex-col items-center gap-1 w-full py-2 text-cyan-900/50 hover:bg-cyan-950/30 transition-none duration-0"
+                class="toolButton group flex flex-col items-center gap-1 w-full py-2 text-cyan-500/40 hover:bg-cyan-950/30 transition-none duration-0"
                 title="Pan / Mover (Space)">
                 <span class="material-symbols-outlined">pan_tool</span>
                 <span class="font-['Manrope'] text-[10px] tracking-[0.1em] font-bold uppercase">Pan</span>
@@ -259,22 +260,27 @@
                 </div>
             </div>
 
-            <!-- Color Section -->
-            <div class="mb-4 text-center">
+            <!-- FPS Section (Moved from Footer) -->
+            <div class="mb-6 flex flex-col items-center border border-fuchsia-100/5 py-2 bg-black/20">
+                <span class="text-fuchsia-500/50 tracking-[0.3em] font-bold text-[9px] uppercase mb-1">Animation Speed</span>
+                <div class="flex items-center gap-2">
+                     <span class="material-symbols-outlined text-fuchsia-500/30 text-sm">speed</span>
+                     <input type="number" id="fpsInput" value="8" min="1" max="24"
+                        class="w-12 text-center bg-transparent border-none p-0 text-xl text-fuchsia-400 focus:ring-0 font-mono font-bold">
+                     <span class="text-fuchsia-900/40 font-bold text-[10px]">FPS</span>
+                </div>
+            </div>
+
+            <!-- Color Wheel Section -->
+            <div class="mb-6 flex flex-col items-center">
                 <h3
-                    class="font-['Space_Grotesk'] text-[11px] font-bold tracking-[0.2em] uppercase text-on-surface-variant mb-2 flex justify-between items-center text-left">
-                    MAIN COLOR <span
+                    class="font-['Space_Grotesk'] text-[11px] font-bold tracking-[0.2em] uppercase text-on-surface-variant mb-4 w-full flex justify-between items-center text-left">
+                    COLOR SPECTRUM <span
                         class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_5px_rgba(34,211,238,0.8)]"></span>
                 </h3>
-                <div
-                    class="w-full h-12 border border-outline-variant/30 flex items-center justify-center bg-surface-container overflow-hidden rounded relative group hover:border-fuchsia-500/50">
-                    <input type="color" id="colorPicker" value="#007bff" class="invisible-color z-10">
-                    <div class="absolute inset-0 z-0 pointer-events-none flex items-center justify-center shadow-inner"
-                        id="colorPickerDisplay">
-                        <span
-                            class="mix-blend-difference text-white font-mono text-xs font-bold pointer-events-none tracking-widest uppercase">Select</span>
-                    </div>
-                </div>
+                <div id="colorWheelContainer" class="flex justify-center p-2 bg-black/10 rounded-full border border-white/5 shadow-inner"></div>
+                <!-- Keep hidden for editor.js compatibility -->
+                <input type="color" id="colorPicker" value="#007bff" class="hidden">
             </div>
 
             <div class="flex-1 flex flex-col min-h-0">
@@ -316,14 +322,14 @@
         class="fixed bottom-0 w-full h-16 z-50 bg-[#131313] border-t-2 border-fuchsia-900/30 shadow-[0_-4px_20px_rgba(255,0,255,0.05)] flex items-center gap-6 px-4 md:px-8 overflow-hidden select-none">
         <div class="flex items-center gap-4">
             <button id="btnPrev"
-                class="text-fuchsia-900/40 hover:text-fuchsia-300 flex flex-col items-center justify-center group z-50 focus:outline-none"
+                class="text-fuchsia-500/40 hover:text-fuchsia-300 flex flex-col items-center justify-center group z-50 focus:outline-none"
                 title="Anterior">
                 <span class="material-symbols-outlined text-xl">skip_previous</span>
             </button>
             <span id="frameIndicator"
                 class="font-mono text-fuchsia-400 text-xs text-center w-24 tracking-widest font-bold">FRAME: 1/1</span>
             <button id="btnNext"
-                class="text-fuchsia-900/40 hover:text-fuchsia-300 flex flex-col items-center justify-center group z-50 focus:outline-none"
+                class="text-fuchsia-500/40 hover:text-fuchsia-300 flex flex-col items-center justify-center group z-50 focus:outline-none"
                 title="Próximo">
                 <span class="material-symbols-outlined text-xl">skip_next</span>
             </button>
@@ -331,52 +337,59 @@
 
         <div class="flex items-center gap-2 border-l border-r border-fuchsia-900/20 px-6 h-full py-3">
             <button id="btnAddFrame"
-                class="h-full px-5 border border-fuchsia-900/40 border-dashed bg-transparent flex items-center justify-center text-fuchsia-900/60 hover:text-fuchsia-400 hover:border-fuchsia-500 cursor-pointer transition-all gap-2 z-50"
+                class="h-full px-5 border border-fuchsia-500/40 border-dashed bg-transparent flex items-center justify-center text-fuchsia-500/50 hover:text-fuchsia-400 hover:border-fuchsia-500 cursor-pointer transition-all gap-2 z-50"
                 title="Criar Novo Frame">
                 <span class="material-symbols-outlined text-[18px]">add</span>
             </button>
             <button id="btnDuplicateFrame"
-                class="h-full px-4 border border-fuchsia-900/20 bg-surface-container-low flex items-center justify-center text-fuchsia-900/60 hover:text-fuchsia-400 hover:border-fuchsia-500 cursor-pointer transition-all z-50"
+                class="h-full px-4 border border-fuchsia-500/20 bg-surface-container-low flex items-center justify-center text-fuchsia-500/40 hover:text-fuchsia-400 hover:border-fuchsia-500 cursor-pointer transition-all z-50"
                 title="Duplicar Frame Atual">
                 <span class="material-symbols-outlined text-[16px]">content_copy</span>
             </button>
             <button id="btnDeleteFrame"
-                class="h-full px-4 border border-red-900/20 bg-surface-container-highest flex items-center justify-center text-red-900/40 hover:text-red-400 hover:border-red-500 cursor-pointer transition-all z-50"
+                class="h-full px-4 border border-red-500/20 bg-surface-container-highest flex items-center justify-center text-red-500/40 hover:text-red-400 hover:border-red-500 cursor-pointer transition-all z-50"
                 title="Apagar Frame Atual">
                 <span class="material-symbols-outlined text-[16px]">delete</span>
             </button>
         </div>
 
         <div class="flex-1"></div>
-
-        <div class="flex items-center gap-4 font-['Manrope'] text-[10px] uppercase font-bold text-fuchsia-500">
-            <div
-                class="flex flex-col items-center border border-fuchsia-900/30 px-3 py-1 bg-surface-container-lowest z-50">
-                <span class="text-fuchsia-900/40 tracking-widest">FPS LIMIT</span>
-                <input type="number" id="fpsInput" value="8" min="1" max="24"
-                    class="w-12 text-center bg-transparent border-none p-0 text-lg text-fuchsia-400 focus:ring-0 font-mono">
-            </div>
-        </div>
     </footer>
 
     <!-- Custom Script to sync picker display arrays (since color inputs are invisible) -->
     <script>
         const cp = document.getElementById('colorPicker');
-        const cpDisplay = document.getElementById('colorPickerDisplay');
         const pcp = document.getElementById('paleteColorPicker');
         const pcpDisplay = document.getElementById('paleteColorDisplay');
 
+        // Initialize iro.js Color Wheel
+        const colorWheel = new iro.ColorPicker("#colorWheelContainer", {
+            width: 180,
+            color: cp.value,
+            layout: [
+                { component: iro.ui.Wheel },
+                { component: iro.ui.Slider, options: { sliderType: 'value' } }
+            ]
+        });
+
+        // Update editor.js colorPicker when wheel changes
+        colorWheel.on('color:change', function(color) {
+            cp.value = color.hexString;
+            // Manually trigger change for editor.js listeners
+            cp.dispatchEvent(new Event('change'));
+        });
+
         function updateDisplays() {
-            if (cpDisplay.style.backgroundColor !== cp.value) {
-                cpDisplay.style.backgroundColor = cp.value;
+            // Sync Wheel back if value changed from elsewhere (palettes/shortcuts)
+            if (colorWheel.color.hexString.toLowerCase() !== cp.value.toLowerCase()) {
+                colorWheel.color.set(cp.value);
             }
+            
             if (pcpDisplay.style.backgroundColor !== pcp.value) {
                 pcpDisplay.style.backgroundColor = pcp.value;
             }
         }
-
-        // Use an interval to guarantee syncing even if modified by JS code (.value sets) without DOM Events.
-        setInterval(updateDisplays, 200);
+        setInterval(updateDisplays, 100);
     </script>
     <script src="editor.js" type="module"></script>
 </body>
