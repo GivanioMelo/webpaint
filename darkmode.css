@@ -1,0 +1,264 @@
+body
+{
+	background-color: var(--background); /* bg-background */
+	color: var(--on-surface);           /* text-on-surface */
+	font-family: var(--font-body);       /* font-body */
+	overflow: hidden;                    /* overflow-hidden */
+}
+body::selection
+{
+	background-color: var(--primary-container); /* selection:bg-primary-container */
+	color: white;                               /* selection:text-[white] */
+}
+body::-moz-selection {
+	background-color: var(--primary-container);
+	color: white;
+}
+
+main {
+  flex: 1 1 0%;         /* flex-1: permite crescer e encolher ocupando o espaço restante */
+  display: flex;        /* flex */
+  position: relative;   /* relative */
+  margin-left: 5rem;    /* ml-20 (20 * 0.25rem) */
+  margin-right: 18rem;  /* mr-72 (72 * 0.25rem) */
+  padding: 0;           /* p-0 */
+  height: 100%;         /* h-full */
+  background-color: #0e0e0e; /* bg-[#0e0e0e] */
+}
+
+h3 {
+	font-family: 'Space Grotesk', sans-serif;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.2em; 
+	text-transform: uppercase; 
+	text-align: center;
+	color: rgb(229 226 225);		 
+	display: flex; 
+	justify-content: space-between;
+	align-items: center; 
+	width: 100%; 
+	margin-bottom: 1rem; 
+}
+
+#colorWheelContainer {
+	display: flex;                /* flex */
+	justify-content: center;      /* justify-center */
+	padding: 0.5rem;              /* p-2 (2 * 0.25rem) */
+	margin: 0;
+	background-color: rgba(0, 0, 0, 0.1);      /* bg-black/10 */
+	border-radius: 9999px;                     /* rounded-full */
+	border: 1px solid rgba(255, 255, 255, 0.05); /* border + white/5 */
+	box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06); /* shadow-inner */
+}
+
+#viewport{
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	overflow: hidden;        /* overflow-hidden */
+	outline: 2px solid transparent;
+	outline-offset: 2px;     /* outline-none (no Tailwind, remove o foco padrão) */
+	background-color: var(--surface-container-low);
+	--tw-bg-opacity: 1;
+    background-color: rgb(28 27 27 / var(--tw-bg-opacity, 1));
+}
+
+.material-symbols-outlined {
+	font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.fpsBar
+{
+  padding-top: 0.5rem;     /* py-2 (2 * 0.25rem) */
+  padding-bottom: 0.5rem;  /* py-2 */
+  display: flex;           /* flex */
+  flex-direction: column;  /* flex-col */
+  align-items: center;     /* items-center */
+  background-color: rgba(0, 0, 0, 0.2); /* bg-black/20 */
+  border: 1px solid rgba(250, 232, 255, 0.05); /* border + fuchsia-100 com 5% de opacidade */
+}
+
+/* Custom styles to hide standard color inputs */
+input[type="color"].invisible-color {
+	opacity: 0;
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	cursor: pointer;
+}
+
+aside.left{
+	/* Posicionamento e Camada */
+	position: fixed;
+	left: 0;
+	top: 3.5rem; /* Equivalente a top-14 (14 * 0.25rem) */
+	z-index: 40;
+
+	/* Dimensionamento */
+	width: 5rem; /* Equivalente a w-20 (20 * 0.25rem) */
+	height: calc(100vh - 120px);
+
+	/* Estilização Visual */
+	background-color: #0e0e0e;
+	border-right: 2px solid rgba(22, 78, 99, 0.2); /* border-cyan-900 com 20% de opacidade */
+
+	/* Layout Flexbox */
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding-top: 1rem;    /* py-4 */
+	padding-bottom: 1rem; /* py-4 */
+	gap: 0.5rem;          /* gap-2 */
+
+	/* Comportamento de Scroll */
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+aside.right{
+	/* Posicionamento e Camada */
+	position: fixed;
+	right: 0;
+	top: 3.5rem; /* Equivalente a top-14 (14 * 0.25rem) */
+	z-index: 40;
+
+	/* Dimensionamento */
+	width: 18rem; /* Equivalente a w-20 (20 * 0.25rem) */
+	height: calc(100vh - 120px);
+
+	/* Estilização Visual */
+	background-color: #0e0e0e;
+	border-right: 2px solid rgba(22, 78, 99, 0.2); /* border-cyan-900 com 20% de opacidade */
+
+	/* Layout Flexbox */
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding-top: 1rem;    /* py-4 */
+	padding-bottom: 1rem; /* py-4 */
+	gap: 0.5rem;          /* gap-2 */
+
+	/* Comportamento de Scroll */
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.toolbarTitle
+{
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	margin-bottom: 0.5rem;
+
+	color: rgb(8 145 178 / 0.5);
+
+	font-family: 'Manrope';
+	font-size: 8px;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	font-weight: 700;
+}
+
+.toolButton
+{
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	margin: 0px;
+	padding: 0.5rem 0rem 0.5rem 0rem;
+	align-items: center;
+	background-color: transparent;
+	gap: 0.25rem;
+	color: rgb(6 182 212 / 0.4);
+	transition-property: none;
+	transition-duration: 0;
+}
+
+.toolButton:hover
+{
+	background-color: rgb(8 51 68 / 0.3);
+}
+
+.active-tool {
+	background-color: rgba(34, 211, 238, 0.2) !important;
+	color: #22d3ee !important;
+	box-shadow: inset 0 0 10px rgba(34, 211, 238, 0.2);
+	transition: 0.1s;
+}
+.active-tool > span.toolIcon
+{
+	font-variation-settings: 'FILL' 1;
+}
+
+.toolIcon{
+	font-family: 'Material Symbols Outlined';
+	font-weight: normal;
+	font-style: normal;
+	font-size: 32px;
+	line-height: 1;
+	letter-spacing: normal;
+	text-transform: none;
+	display: inline-block;
+	white-space: nowrap;
+	word-wrap: normal;
+	direction: ltr;
+	-webkit-font-feature-settings: 'liga';
+	-webkit-font-smoothing: antialiased;
+}
+
+.toolLabel{
+	font-family: 'Manrope';
+	font-size: 10px;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	font-weight: 700;
+}
+
+.toolBarSpacer
+{
+	margin-top: auto;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 100%;
+	padding-left: 0.5rem;
+	padding-right: 0.5rem;
+	gap: 0.5rem;
+	padding-top: 1rem;
+	border-top-width: 1px;
+	border-color: rgb(22 78 99 / 0.2);
+}
+
+.pan-tool-active {
+	cursor: grab !important;
+}
+
+/* WebPaint Canvas Logic */
+#canvasContainer {
+	position: relative;
+}
+
+canvas {
+	image-rendering: pixelated;
+}
+
+.palette-row {
+	display: flex;
+	gap: 2px;
+	margin-bottom: 2px;
+}
+
+.color-swatch {
+	width: 20px;
+	height: 20px;
+	cursor: pointer;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.color-swatch:hover {
+	border-color: #fff;
+}
