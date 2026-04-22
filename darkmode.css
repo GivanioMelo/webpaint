@@ -301,6 +301,22 @@ div.navGroup {
 }
 .btnClearFrame:hover { background-color: rgba(127, 29, 29, 0.5); }
 
+/* Contour tool button */
+.btnContour {
+    position: relative;
+}
+/* .btnContour::after {
+    content: 'O';
+    position: absolute;
+    bottom: 2px;
+    right: 10px;
+    font-size: 8px;
+    font-family: 'Space Grotesk', monospace;
+    color: rgba(6, 182, 212, 0.45);
+    letter-spacing: 0;
+    pointer-events: none;
+} */
+
 /* ─────────────────────────────────────────
    MAIN CANVAS WORKSPACE
 ───────────────────────────────────────── */

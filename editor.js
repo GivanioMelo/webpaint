@@ -27,6 +27,7 @@ var startPanX, startPanY;
 const btn_ZoomIn = document.getElementById('btnZoomIn');
 const btn_ZoomOut = document.getElementById('btnZoomOut');
 const btnPan = document.getElementById('btnPan');
+const btnContour = document.getElementById('btnContour');
 
 const viewPort = document.getElementById("viewport");
 const container = document.getElementById('canvasContainer');
@@ -436,6 +437,52 @@ async function exportGif() {
     console.log("GIF Transparente exportado!");
 }
 
+/**
+ * applyContour — draws a 1-pixel outline around every opaque region
+ * using the currently selected color.
+ * Works by scanning all pixels; for each transparent pixel, if any
+ * orthogonal (4-directional) neighbour is opaque, that pixel is painted.
+ * The operation is non-destructive to existing pixels.
+ */
+function applyContour() {
+    saveStateForUndo();
+
+    const imageData = paintCtx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+    const src = new Uint8ClampedArray(imageData.data); // immutable snapshot
+    const dst = imageData.data;                        // output (we'll write here)
+
+    const fill = hexToRgb(colorPicker.value);
+
+    const idx = (x, y) => (y * CANVAS_SIZE + x) * 4;
+
+    const isOpaque = (x, y) => {
+        if (x < 0 || x >= CANVAS_SIZE || y < 0 || y >= CANVAS_SIZE) return false;
+        return src[idx(x, y) + 3] > 10; // treat alpha > 10 as "opaque"
+    };
+
+    const neighbors = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+
+    for (let y = 0; y < CANVAS_SIZE; y++) {
+        for (let x = 0; x < CANVAS_SIZE; x++) {
+            const i = idx(x, y);
+            // Only paint transparent pixels that border an opaque one
+            if (src[i + 3] <= 10) {
+                const bordersOpaque = neighbors.some(([dx, dy]) => isOpaque(x + dx, y + dy));
+                if (bordersOpaque) {
+                    dst[i]     = fill.r;
+                    dst[i + 1] = fill.g;
+                    dst[i + 2] = fill.b;
+                    dst[i + 3] = 255;
+                }
+            }
+        }
+    }
+
+    paintCtx.putImageData(imageData, 0, 0);
+    saveCurrentFrame();
+    if (typeof restartPreview === 'function') restartPreview();
+}
+
 function drawGrid() {
     gridCtx.clearRect(0, 0, CANVAS_SIZE * scale, CANVAS_SIZE * scale);
 
@@ -487,6 +534,7 @@ function setTool(tool) {
     btnLine.classList.remove('active-tool');
     btnSelect.classList.remove('active-tool');
     btnPan.classList.remove('active-tool');
+    btnContour.classList.remove('active-tool');
 
     // Adiciona ao selecionado
     if (tool === 'pencil') btnPencil.classList.add('active-tool');
@@ -866,6 +914,15 @@ function pageLoad() {
         if (e.key.toLowerCase() === 'l') setTool('line');
         if (e.key.toLowerCase() === 'b') setTool('bucket');
         if (e.key.toLowerCase() === 's') setTool('select');
+        if (e.key.toLowerCase() === 'o') {
+            // 'O' = one-shot contour: flash active state then revert
+            const prev = currentTool;
+            btnContour.classList.add('active-tool');
+            applyContour();
+            setTimeout(() => {
+                btnContour.classList.remove('active-tool');
+            }, 300);
+        }
 
         if (e.code === 'Space') {
             setTool('pan');
@@ -903,6 +960,13 @@ function pageLoad() {
     btn_ZoomOut.onclick = () => adjustZoom(-0.5);
 
     btnPan.onclick = () => setTool('pan');
+
+    // Contour is a one-shot action: flash button active, apply, restore
+    btnContour.onclick = () => {
+        btnContour.classList.add('active-tool');
+        applyContour();
+        setTimeout(() => btnContour.classList.remove('active-tool'), 300);
+    };
     //posição inicial do canvas quando a pagina carregar
     panX = (window.innerWidth - (CANVAS_SIZE * scale)) / 2;
     panY = 20;
