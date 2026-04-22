@@ -33,6 +33,9 @@ const viewPort = document.getElementById("viewport");
 const container = document.getElementById('canvasContainer');
 const zoomDisplay = document.getElementById('zoomDisplay');
 
+
+const backGroundCanvas = document.getElementById('backgroundCanvas');
+var canvasBackgroundSize = 100 / (CANVAS_SIZE/2);
 // Canvas Principal
 const paintCanvas = document.getElementById('paintCanvas');
 const paintCtx = paintCanvas.getContext('2d');
@@ -627,6 +630,11 @@ function updateCanvasResolution(newSize) {
     paintCanvas.width = CANVAS_SIZE;
     paintCanvas.height = CANVAS_SIZE;
 
+    backGroundCanvas.style.backgroundSize = `${100 / (CANVAS_SIZE/2)}% ${100 / (CANVAS_SIZE/2)}%`;
+
+    backGroundCanvas.width = CANVAS_SIZE;
+    backGroundCanvas.height = CANVAS_SIZE;
+
     onionCanvas.width = CANVAS_SIZE;
     onionCanvas.height = CANVAS_SIZE;
 
@@ -984,7 +992,7 @@ function pageLoad() {
     // Inicializa a grade
     drawGrid();
 
-
+    backGroundCanvas.style.backgroundSize = `${100 / (CANVAS_SIZE/2)}% ${100 / (CANVAS_SIZE/2)}%`;
 
     paintCanvas.addEventListener('mousedown', (e) => {
         isDrawing = true;
