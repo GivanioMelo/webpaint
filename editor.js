@@ -157,7 +157,7 @@ function createPaletteRow(baseHex) {
     row.className = 'palette-row';
 
     // Tons: -30%, -20%, -10%, BASE, +10%, +20%, +30%
-    const offsets = [-30, -20, -10, 0, 10, 20, 30];
+    const offsets = [-30,-25,-20, -15, -10, 0, 10, 15, 20, 25, 30];
 
     offsets.forEach(offset => {
         const newL = Math.max(0, Math.min(100, hsl.l + offset));
