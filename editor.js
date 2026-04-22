@@ -18,6 +18,8 @@ const btnSelect = document.getElementById('btnSelect');
 
 //zoom and panning
 var scale = 10.0;
+var minscale = 0.5;
+var maxscale = 30.0;
 var panX = 0;
 var panY = 0;
 var isPanning = false;
@@ -787,8 +789,8 @@ function zoomWheel(e) {
 
     // 3. Calcula o novo zoom respeitando os limites (0.5 a 10.0)
     let newScale = scale + delta;
-    if (newScale < 0.5) newScale = 0.5;
-    if (newScale > 20.0) newScale = 20;
+    if (newScale < minscale) newScale = minscale;
+    if (newScale > maxscale) newScale = maxscale;
 
     // Só reprocessa se o zoom realmente mudou
     if (newScale !== oldScale) {
@@ -821,8 +823,8 @@ function zoomWheel(e) {
 
 function adjustZoom(delta) {
     let newScale = scale + delta;
-    if (newScale < 0.5) newScale = 0.5;
-    if (newScale > 20.0) newScale = 20;
+    if (newScale < minscale) newScale = minscale;
+    if (newScale > maxscale) newScale = maxscale;
 
     scale = newScale;
     updateView();
