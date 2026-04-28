@@ -153,12 +153,15 @@
 
             <!-- Color Wheel Section -->
             <div class="colorWheelSection">
-                <h3>
+                <h3 id="colorWheelToggle" class="collapsible-heading" title="Click to expand/collapse">
                     Cores
+                    <span class="collapseChevron material-symbols-outlined">expand_less</span>
                 </h3>
-                <div id="colorWheelContainer"></div>
-                <!-- Keep hidden for editor.js compatibility -->
-                <input type="color" id="colorPicker" value="#007bff" class="hidden">
+                <div id="colorWheelBody" class="colorWheelBody">
+                    <div id="colorWheelContainer"></div>
+                    <!-- Keep hidden for editor.js compatibility -->
+                    <input type="color" id="colorPicker" value="#007bff" class="hidden">
+                </div>
             </div>
 
             <div class="palettesPanel">

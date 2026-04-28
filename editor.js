@@ -77,6 +77,10 @@ const chkGrid = document.getElementById('chkGrid');
 const inputLoadPng = document.getElementById('inputLoadPng');
 const btnLoadPng = document.getElementById('btnLoadPng');
 
+const colorWheelToggle = document.getElementById('colorWheelToggle');
+const colorWheelBody = document.getElementById('colorWheelBody');
+const collapseChevron = colorWheelToggle.querySelector('.collapseChevron');
+
 // 'pencil' ou 'eraser'
 var currentTool = 'pencil';
 // --- Estado da Aplicação ---
@@ -1095,7 +1099,10 @@ function pageLoad() {
     createPaletteRow('#553d3d');
     // --- Lógica da Animação de Preview ---
 
-
+    colorWheelToggle.addEventListener('click', () => {
+        const isCollapsed = colorWheelBody.classList.toggle('collapsed');
+        collapseChevron.textContent = isCollapsed ? 'expand_more' : 'expand_less';
+    });
 
     // Função para resetar o loop se o FPS mudar ou frames forem adicionados
 
