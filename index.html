@@ -6,13 +6,9 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>WebPaint | Kinetic Grid Editor</title>
     <link rel="shortcut icon" href="assets/paint-palette.png" type="image/x-icon">
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
     <link rel="stylesheet" href="darkmode.css">
 </head>
@@ -24,7 +20,6 @@
         <div class="navGroup">
             <span class="logo">WebPaint</span>
             <nav class="topNav">
-                <!-- Zoom controls -->
                 <div class="zoomControls">
                     <button id="btnZoomOut" class="zoomBtn" title="Zoom Out">
                         <span class="material-symbols-outlined">zoom_out</span>
@@ -34,12 +29,10 @@
                         <span class="material-symbols-outlined">zoom_in</span>
                     </button>
                 </div>
-                <!-- Load PNG -->
                 <input type="file" id="inputLoadPng" accept="image/png" style="display: none;">
                 <button id="btnLoadPng" class="navBtn">
                     <span class="material-symbols-outlined">file_upload</span> Load PNG
                 </button>
-                <!-- Export -->
                 <button id="btnExport" class="navBtn">
                     <span class="material-symbols-outlined">image</span> Export PNG
                 </button>
@@ -49,7 +42,6 @@
             </nav>
         </div>
         <div class="navGroup">
-            <!-- Canvas Size Setup -->
             <label class="sizeLabel" title="Tamanho">Size:
                 <select id="selectSize" class="sizeSelect">
                     <option value="16">16x16</option>
@@ -67,38 +59,31 @@
     </header>
 
     <div class="appLayout">
-        <!-- SideNavBar (Left Toolbox) -->
+        <!-- Left Toolbox -->
         <aside class="sidebarLeft">
             <div class="toolbarHeader">
                 <span class="toolbarTitle">TOOLS</span>
             </div>
             <button id="btnPencil" class="toolButton active-tool" title="Lápis (P)">
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">edit</span>
-                <!-- <span class="toolLabel">Pencil</span> -->
             </button>
             <button id="btnEraser" class="toolButton" title="Borracha (E)">
                 <span class="material-symbols-outlined">ink_eraser</span>
-                <!-- <span class="toolLabel">Eraser</span> -->
             </button>
-            <button id="btnBucket" class="toolButton" title="Balde de Tintas (B)">
+            <button id="btnBucket" class="toolButton" title="Balde (B)">
                 <span class="material-symbols-outlined">format_color_fill</span>
-                <!-- <span class="toolLabel">Fill</span> -->
             </button>
             <button id="btnLine" class="toolButton" title="Linha (L)">
                 <span class="material-symbols-outlined">diagonal_line</span>
-                <!-- <span class="toolLabel">Line</span> -->
             </button>
             <button id="btnSelect" class="toolButton" title="Selecionar (S)">
                 <span class="material-symbols-outlined">select_all</span>
-                <!-- <span class="toolLabel">Select</span> -->
             </button>
-            <button id="btnPan" class="toolButton" title="Pan / Mover (Space)">
+            <button id="btnPan" class="toolButton" title="Pan (Space)">
                 <span class="material-symbols-outlined">pan_tool</span>
-                <!-- <span class="toolLabel">Pan</span> -->
             </button>
-            <button id="btnContour" class="toolButton btnContour" title="Contorno (O) — Desenha outline ao redor dos pixels">
+            <button id="btnContour" class="toolButton btnContour" title="Contorno (O)">
                 <span class="material-symbols-outlined">extension</span>
-                <!-- <span class="toolLabel">Outline</span> -->
             </button>
 
             <div class="toolBarSpacer">
@@ -108,32 +93,30 @@
                         <span class="material-symbols-outlined">background_grid_small</span>
                     </div>
                 </label>
-                <button id="btnClearFrame" class="btnClearFrame material-symbols-outlined" title="Limpar todo o frame atual">mop</button>
+                <button id="btnClearFrame" class="btnClearFrame material-symbols-outlined" title="Limpar frame">mop</button>
             </div>
         </aside>
 
-        <!-- Main Workspace Canvas -->
+        <!-- Main Workspace -->
         <main>
             <div id="viewport" class="viewport" tabindex="0">
-                <!-- Our canvas container inside viewport -->
                 <div id="canvasContainer" class="canvas-container" style="transform-origin: 0 0;">
                     <canvas id="backgroundCanvas" class="backgroundCanvas"></canvas>
                     <canvas id="onionCanvas" class="onionCanvas" width="32" height="32"></canvas>
+                    <canvas id="layersBelowCanvas" class="layersBelowCanvas" width="32" height="32"></canvas>
                     <canvas id="paintCanvas" class="paintCanvas" width="32" height="32"></canvas>
+                    <canvas id="layersAboveCanvas" class="layersAboveCanvas" width="32" height="32"></canvas>
                     <canvas id="gridCanvas" class="gridCanvas" width="32" height="32"></canvas>
                 </div>
             </div>
-
-            <!-- Corner Brackets Design -->
             <div class="cornerBracket cornerBracket--tl"></div>
             <div class="cornerBracket cornerBracket--tr"></div>
             <div class="cornerBracket cornerBracket--bl"></div>
             <div class="cornerBracket cornerBracket--br"></div>
         </main>
 
-        <!-- Right Sidebar (Color & Palettes) -->
+        <!-- Right Sidebar: Colors & Palettes -->
         <aside class="sidebarRight">
-            <!-- Preview Section -->
             <div class="previewSection">
                 <div class="previewGlow"></div>
                 <div class="previewFrame">
@@ -141,7 +124,6 @@
                 </div>
             </div>
 
-            <!-- FPS Section -->
             <div class="fpsSection">
                 <span class="fpsSectionLabel">Animation Speed</span>
                 <div class="fpsControls">
@@ -151,7 +133,6 @@
                 </div>
             </div>
 
-            <!-- Color Wheel Section -->
             <div class="colorWheelSection">
                 <h3 id="colorWheelToggle" class="collapsible-heading" title="Click to expand/collapse">
                     Cores
@@ -159,14 +140,12 @@
                 </h3>
                 <div id="colorWheelBody" class="colorWheelBody">
                     <div id="colorWheelContainer"></div>
-                    <!-- Keep hidden for editor.js compatibility -->
                     <input type="color" id="colorPicker" value="#007bff" class="hidden">
                 </div>
             </div>
 
             <div class="palettesPanel">
                 <h3>Paletas de Cores</h3>
-
                 <div class="palettePickerRow">
                     <div class="palettePickerSwatch">
                         <input type="color" id="paleteColorPicker" value="#007bff" class="invisible-color">
@@ -174,10 +153,8 @@
                     </div>
                     <button id="btnAddPaletteRow">Gerar Paleta</button>
                 </div>
-
                 <div id="paletteRows" class="paletteRows"></div>
 
-                <!-- Layer Options -->
                 <div class="configContainer">
                     <label class="configLabel">
                         <input type="checkbox" id="chkOnion" checked>
@@ -186,9 +163,50 @@
                 </div>
             </div>
         </aside>
+
+        <!-- Right Sidebar 2: Layers -->
+        <aside class="sidebarLayers">
+            <div class="layerPanelHeader">
+                <span class="layerPanelTitle">LAYERS</span>
+                <div class="layerHeaderActions">
+                    <button id="btnMoveLayerUp" class="layerIconBtn" title="Move layer up">
+                        <span class="material-symbols-outlined">arrow_upward</span>
+                    </button>
+                    <button id="btnMoveLayerDown" class="layerIconBtn" title="Move layer down">
+                        <span class="material-symbols-outlined">arrow_downward</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Layer list -->
+            <div id="layerList" class="layerList"></div>
+
+            <!-- Opacity control -->
+            <div class="layerOpacityRow">
+                <span class="layerOpacityLabel">Opacity</span>
+                <input type="range" id="layerOpacity" class="layerOpacitySlider" min="0" max="100" value="100">
+                <span id="layerOpacityValue" class="layerOpacityValue">100%</span>
+            </div>
+
+            <!-- Layer action buttons -->
+            <div class="layerActions">
+                <button id="btnAddLayer" class="layerActionBtn layerActionBtn--add" title="Add layer">
+                    <span class="material-symbols-outlined">add</span>
+                    <span class="layerActionLabel">Add</span>
+                </button>
+                <button id="btnDuplicateLayer" class="layerActionBtn layerActionBtn--dup" title="Duplicate layer">
+                    <span class="material-symbols-outlined">content_copy</span>
+                    <span class="layerActionLabel">Dup</span>
+                </button>
+                <button id="btnDeleteLayer" class="layerActionBtn layerActionBtn--del" title="Delete layer">
+                    <span class="material-symbols-outlined">delete</span>
+                    <span class="layerActionLabel">Del</span>
+                </button>
+            </div>
+        </aside>
     </div>
 
-    <!-- BottomNavBar (Animation Timeline) -->
+    <!-- Footer timeline -->
     <footer class="footer">
         <div class="frameNavGroup">
             <button id="btnPrev" class="frameNavBtn" title="Anterior">
@@ -204,10 +222,10 @@
             <button id="btnAddFrame" class="btnAddFrame" title="Criar Novo Frame">
                 <span class="material-symbols-outlined">add</span>
             </button>
-            <button id="btnDuplicateFrame" class="btnDuplicateFrame" title="Duplicar Frame Atual">
+            <button id="btnDuplicateFrame" class="btnDuplicateFrame" title="Duplicar Frame">
                 <span class="material-symbols-outlined">content_copy</span>
             </button>
-            <button id="btnDeleteFrame" class="btnDeleteFrame" title="Apagar Frame Atual">
+            <button id="btnDeleteFrame" class="btnDeleteFrame" title="Apagar Frame">
                 <span class="material-symbols-outlined">delete</span>
             </button>
         </div>
@@ -215,15 +233,13 @@
         <div class="footerSpacer"></div>
     </footer>
 
-    <!-- Custom Script to sync picker display arrays (since color inputs are invisible) -->
     <script>
         const cp = document.getElementById('colorPicker');
         const pcp = document.getElementById('paleteColorPicker');
         const pcpDisplay = document.getElementById('paleteColorDisplay');
 
-        // Initialize iro.js Color Wheel
         const colorWheel = new iro.ColorPicker("#colorWheelContainer", {
-            width: 180,
+            width: 160,
             color: cp.value,
             layout: [
                 { component: iro.ui.Wheel },
@@ -231,19 +247,15 @@
             ]
         });
 
-        // Update editor.js colorPicker when wheel changes
         colorWheel.on('color:change', function(color) {
             cp.value = color.hexString;
-            // Manually trigger change for editor.js listeners
             cp.dispatchEvent(new Event('change'));
         });
 
         function updateDisplays() {
-            // Sync Wheel back if value changed from elsewhere (palettes/shortcuts)
             if (colorWheel.color.hexString.toLowerCase() !== cp.value.toLowerCase()) {
                 colorWheel.color.set(cp.value);
             }
-            
             if (pcpDisplay.style.backgroundColor !== pcp.value) {
                 pcpDisplay.style.backgroundColor = pcp.value;
             }
