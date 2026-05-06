@@ -28,6 +28,8 @@ const backGroundCanvas = document.getElementById('backgroundCanvas');
 // ─── Paint canvas (active layer — drawn on by the user) ─────────────────────
 const paintCanvas = document.getElementById('paintCanvas');
 const paintCtx    = paintCanvas.getContext('2d');
+// start with pencil cursor
+paintCanvas.style.cursor = "url('assets/cursor_pencil.png') 0 32, auto";
 
 // ─── Onion skin canvas ──────────────────────────────────────────────────────
 const onionCanvas = document.getElementById('onionCanvas');
@@ -748,7 +750,7 @@ function drawGrid() {
     }
     if (currentTool === 'select' && selection.active) {
         gridCtx.strokeStyle = '#ff0000';
-        gridCtx.lineWidth   = 0.5;
+        gridCtx.lineWidth = 2;
         gridCtx.setLineDash([2, 2]);
         gridCtx.strokeRect(
             selection.x * scale, selection.y * scale,
@@ -771,12 +773,12 @@ function setTool(tool) {
     [btnPencil, btnEraser, btnBucket, btnLine, btnSelect, btnPan, btnContour].forEach(
         b => b.classList.remove('active-tool')
     );
-    if (tool === 'pencil')  btnPencil.classList.add('active-tool');
-    if (tool === 'eraser')  btnEraser.classList.add('active-tool');
-    if (tool === 'bucket')  btnBucket.classList.add('active-tool');
-    if (tool === 'line')    btnLine.classList.add('active-tool');
-    if (tool === 'pan')     btnPan.classList.add('active-tool');
-    if (tool === 'select')  btnSelect.classList.add('active-tool');
+    if (tool === 'pencil')  {btnPencil.classList.add('active-tool');    paintCanvas.style.cursor = "url('assets/cursor_pencil.png') 0 32, auto"; }
+    if (tool === 'eraser')  {btnEraser.classList.add('active-tool');    paintCanvas.style.cursor = "url('assets/cursor_eraser.png') 0 32, auto"; }
+    if (tool === 'bucket')  {btnBucket.classList.add('active-tool');    paintCanvas.style.cursor = "url('assets/cursor_bucket.png') 0 32, auto"; }
+    if (tool === 'line')    {btnLine.classList.add('active-tool');      paintCanvas.style.cursor = "url('assets/cursor_crosshair.png') 15 15, auto"; }
+    if (tool === 'pan')     {btnPan.classList.add('active-tool');       paintCanvas.style.cursor = "url('assets/cursor_pan.png') 16 16, auto"; }
+    if (tool === 'select')  {btnSelect.classList.add('active-tool');    paintCanvas.style.cursor = "url('assets/cursor_select.png') 0 0, auto"; }
     else {
         selection.active   = false;
         selection.data     = null;
