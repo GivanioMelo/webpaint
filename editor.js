@@ -777,7 +777,7 @@ function setTool(tool) {
     if (tool === 'eraser')  {btnEraser.classList.add('active-tool');    paintCanvas.style.cursor = "url('assets/cursor_eraser.png') 0 32, auto"; }
     if (tool === 'bucket')  {btnBucket.classList.add('active-tool');    paintCanvas.style.cursor = "url('assets/cursor_bucket.png') 0 32, auto"; }
     if (tool === 'line')    {btnLine.classList.add('active-tool');      paintCanvas.style.cursor = "url('assets/cursor_crosshair.png') 15 15, auto"; }
-    if (tool === 'pan')     {btnPan.classList.add('active-tool');       paintCanvas.style.cursor = "url('assets/cursor_pan.png') 16 16, auto"; }
+    if (tool === 'pan')     {btnPan.classList.add('active-tool');       paintCanvas.style.cursor = "url('assets/cursor_pan.png') 0 0, auto"; }
     if (tool === 'select')  {btnSelect.classList.add('active-tool');    paintCanvas.style.cursor = "url('assets/cursor_select.png') 0 0, auto"; }
     else {
         selection.active   = false;
